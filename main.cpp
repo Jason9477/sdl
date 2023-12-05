@@ -10,7 +10,7 @@
 //#define nullptr NULL
 >>>>>>> dcc561fa0f31aa1a69654cf9db9b8768ee65f6f5
 #include <iostream>
-
+//test
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
 const int BALL_SIZE = 20;
