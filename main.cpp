@@ -4,7 +4,7 @@
 #include <SDL2/SDL_image.h>
 //#define nullptr NULL
 #include <iostream>
-
+//test
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
 const int BALL_SIZE = 20;
