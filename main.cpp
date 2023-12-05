@@ -82,7 +82,16 @@ void handleEvents(SDL_Event& e) {
         }
     }
 }
+void resetGame() {
+    ballX = SCREEN_WIDTH / 2 - BALL_SIZE / 2;
+    ballY = SCREEN_HEIGHT / 2 - BALL_SIZE / 2;
 
+    player1X = SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2;
+    player1Y = SCREEN_HEIGHT - PADDLE_HEIGHT;
+
+    player2X = SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2;
+    player2Y = 0;
+}
 void update() {
     ballX += ballSpeedX;
     ballY += ballSpeedY;
@@ -106,11 +115,11 @@ void update() {
     if (ballY + BALL_SIZE > SCREEN_HEIGHT) {
         // Player 1 scores
         std::cout << "Player 1 scores!" << std::endl;
-        //resetGame();
+        resetGame();
     } else if (ballY < 0) {
         // Player 2 scores
         std::cout << "Player 2 scores!" << std::endl;
-        //resetGame();
+        resetGame();
     }
 }
 
@@ -134,16 +143,7 @@ void render() {
     SDL_RenderPresent(renderer);
 }
 
-void resetGame() {
-    ballX = SCREEN_WIDTH / 2 - BALL_SIZE / 2;
-    ballY = SCREEN_HEIGHT / 2 - BALL_SIZE / 2;
 
-    player1X = SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2;
-    player1Y = SCREEN_HEIGHT - PADDLE_HEIGHT;
-
-    player2X = SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2;
-    player2Y = 0;
-}
 
 void closeSDL() {
     SDL_DestroyTexture(pikachuTexture);
