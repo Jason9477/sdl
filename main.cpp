@@ -1,5 +1,7 @@
-#include <SDL.h>
-using namespace std;
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <iostream>
+
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
 const int BALL_SIZE = 20;
@@ -14,39 +16,56 @@ int ballSpeedY = 5;
 int player1X, player1Y;
 int player2X, player2Y;
 
-int scorePlayer1 = 0;
-int scorePlayer2 = 0;
-
 SDL_Window* window;
 SDL_Renderer* renderer;
+SDL_Texture* pikachuTexture;
 
 bool initSDL() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
         return false;
     }
 
-    window = SDL_CreateWindow("2P Volleyball Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow("Pikachu Volleyball Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     if (window == nullptr) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Window could not be created! SDL_Error: %s\n", SDL_GetError());
+        std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
         return false;
     }
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (renderer == nullptr) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+        std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError() << std::endl;
+        return false;
+    }
+
+    int imgFlags = IMG_INIT_PNG;
+    if (!(IMG_Init(imgFlags) & imgFlags)) {
+        std::cerr << "SDL_image could not initialize! SDL_image Error: " << IMG_GetError() << std::endl;
         return false;
     }
 
     return true;
 }
 
+SDL_Texture* loadTexture(const char* path) {
+    SDL_Texture* newTexture = nullptr;
+    SDL_Surface* loadedSurface = IMG_Load(path);
+    if (loadedSurface == nullptr) {
+        std::cerr << "Unable to load image " << path << "! SDL_image Error: " << IMG_GetError() << std::endl;
+    } else {
+        newTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
+        if (newTexture == nullptr) {
+            std::cerr << "Unable to create texture from " << path << "! SDL Error: " << SDL_GetError() << std::endl;
+        }
+        SDL_FreeSurface(loadedSurface);
+    }
+    return newTexture;
+}
+
 void handleEvents(SDL_Event& e) {
     if (e.type == SDL_QUIT) {
         exit(0);
-    }
-    // Player 1 controls
-    else if (e.type == SDL_KEYDOWN) {
+    } else if (e.type == SDL_KEYDOWN) {
         switch (e.key.keysym.sym) {
             case SDLK_LEFT:
                 player1X -= PADDLE_SPEED;
@@ -54,11 +73,6 @@ void handleEvents(SDL_Event& e) {
             case SDLK_RIGHT:
                 player1X += PADDLE_SPEED;
                 break;
-        }
-    }
-    // Player 2 controls
-    else if (e.type == SDL_KEYDOWN) {
-        switch (e.key.keysym.sym) {
             case SDLK_a:
                 player2X -= PADDLE_SPEED;
                 break;
@@ -70,11 +84,9 @@ void handleEvents(SDL_Event& e) {
 }
 
 void update() {
-    // Update ball position
     ballX += ballSpeedX;
     ballY += ballSpeedY;
 
-    // Bounce the ball off the walls
     if (ballX < 0 || ballX + BALL_SIZE > SCREEN_WIDTH) {
         ballSpeedX = -ballSpeedX;
     }
@@ -83,7 +95,6 @@ void update() {
         ballSpeedY = -ballSpeedY;
     }
 
-    // Ball collision with paddles
     if (ballY + BALL_SIZE > player1Y && ballX > player1X && ballX < player1X + PADDLE_WIDTH) {
         ballSpeedY = -ballSpeedY;
     }
@@ -92,15 +103,14 @@ void update() {
         ballSpeedY = -ballSpeedY;
     }
 
-    // Check if the ball goes out of bounds
     if (ballY + BALL_SIZE > SCREEN_HEIGHT) {
         // Player 1 scores
-        scorePlayer1++;
-        resetGame();
+        std::cout << "Player 1 scores!" << std::endl;
+        //resetGame();
     } else if (ballY < 0) {
         // Player 2 scores
-        scorePlayer2++;
-        resetGame();
+        std::cout << "Player 2 scores!" << std::endl;
+        //resetGame();
     }
 }
 
@@ -108,31 +118,26 @@ void render() {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
 
-    // Render ball
     SDL_Rect ballRect = { ballX, ballY, BALL_SIZE, BALL_SIZE };
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     SDL_RenderFillRect(renderer, &ballRect);
 
-    // Render paddles
     SDL_Rect player1Rect = { player1X, player1Y, PADDLE_WIDTH, PADDLE_HEIGHT };
     SDL_Rect player2Rect = { player2X, player2Y, PADDLE_WIDTH, PADDLE_HEIGHT };
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
     SDL_RenderFillRect(renderer, &player1Rect);
     SDL_RenderFillRect(renderer, &player2Rect);
 
-    // Render scores
-    renderText("Player 1: " + std::to_string(scorePlayer1), SCREEN_WIDTH / 4, 20);
-    renderText("Player 2: " + std::to_string(scorePlayer2), 3 * SCREEN_WIDTH / 4, 20);
+    SDL_Rect pikachuRect = { SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT / 2 - 50, 100, 100 };
+    SDL_RenderCopy(renderer, pikachuTexture, nullptr, &pikachuRect);
 
     SDL_RenderPresent(renderer);
 }
 
 void resetGame() {
-    // Reset ball position
     ballX = SCREEN_WIDTH / 2 - BALL_SIZE / 2;
     ballY = SCREEN_HEIGHT / 2 - BALL_SIZE / 2;
 
-    // Reset paddle positions
     player1X = SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2;
     player1Y = SCREEN_HEIGHT - PADDLE_HEIGHT;
 
@@ -141,13 +146,22 @@ void resetGame() {
 }
 
 void closeSDL() {
+    SDL_DestroyTexture(pikachuTexture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
+    IMG_Quit();
     SDL_Quit();
 }
 
 int main(int argc, char* args[]) {
     if (!initSDL()) {
+        return -1;
+    }
+
+    pikachuTexture = loadTexture("pikachu.png"); // Replace "pikachu.png" with the path to your Pikachu image file
+
+    if (pikachuTexture == nullptr) {
+        closeSDL();
         return -1;
     }
 
