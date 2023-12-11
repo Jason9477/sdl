@@ -1,5 +1,5 @@
 #include <SDL2/SDL.h>
-
+#include<iostream>
 const Uint32 ANIMATION_FRAME_TIME = 1000/25*3;
 const int WINDOW_WIDTH = 640;
 const int WINDOW_HEIGHT = 480;
@@ -24,12 +24,13 @@ enum Actors
 /** Sprite
 * Holds all informations about sprite.
 */
-struct Sprite
+class Sprite
 {
+public:
   SDL_Rect srcrect; /**< current animation frame from sprite sheet */
   SDL_Rect dstrect; /**< where to render sprite */
   SDL_Texture *texture;
-  SDL_Point d; /**< change in position to apply */
+  SDL_FPoint d; /**< change in position to apply */
   double angle; /**< rotation to apply, used only by BALL */
   Uint32 last_anim_frame_change; /**< time of last change of animation frame*/
 };
@@ -80,12 +81,12 @@ void load_sprites(SDL_Renderer *renderer, Sprite *sprite)
 
 void place_sprites_on_start(Sprite *sprite, int delivery)
 {
-  sprite[PLAYER1].dstrect.x = 20;
+  sprite[PLAYER1].dstrect.x = 50;
   sprite[PLAYER2].dstrect.x = 520;
 
   if (delivery == PLAYER2)
   {
-    sprite[BALL].dstrect.x = 20;
+    sprite[BALL].dstrect.x = 50;
     sprite[BALL].dstrect.y = 50;
   }
   else if (delivery == PLAYER1)
@@ -252,7 +253,9 @@ void apply_gravity(Sprite *sprites)
   {
     if (sprites[i].dstrect.y < WINDOW_HEIGHT - sprites[i].dstrect.h)
     {
-      sprites[i].d.y += 1;
+    
+      sprites[i].d.y += (i==BALL?0.2:1);
+      
     }
   }
 }
@@ -261,8 +264,8 @@ int bounce_ball(Sprite *ball)
 {
   if (ball->dstrect.y >= WINDOW_HEIGHT - ball->dstrect.h) /* hit GROUND*/
   {
-    ball->d.y = ball->d.y * -0.8;
-    ball->d.x *= 0.8;
+    ball->d.y = ball->d.y * -0.9;
+    ball->d.x *= 0.9;
     if (ball->dstrect.x > WINDOW_WIDTH / 2)
       {return PLAYER1;}
     else
@@ -271,17 +274,17 @@ int bounce_ball(Sprite *ball)
 
   if (ball->dstrect.y <= 0) /*hit CEILING */
   {
-    ball->d.y = ball->d.y * -0.8;
+    ball->d.y = ball->d.y * -0.4;
   }
 
   if (ball->dstrect.x >= WINDOW_WIDTH - ball->dstrect.w) /* hit RIGHT wall */
   {
-    ball->d.x = ball->d.x * -0.8;
+    ball->d.x = ball->d.x * -0.6;
   }
 
   if  (ball->dstrect.x <= 0) /* hit LEFT wall */
   {
-    ball->d.x = ball->d.x * -0.8;
+    ball->d.x = ball->d.x * -0.6;
   }
   return 0;
 }
@@ -300,8 +303,8 @@ void hit_ball(Sprite *sprites)
       x_ratio = (float) x_diff / 55; /**< 1.0..-1.0 player left positive, player right negative*/
       if (sprites[BALL].d.y >= 0)
       {
-        sprites[BALL].d.y = sprites[BALL].d.y * -0.8;
-        sprites[BALL].d.x = sprites[BALL].d.x * -0.8;
+        sprites[BALL].d.y = sprites[BALL].d.y * -.6;
+        sprites[BALL].d.x = sprites[BALL].d.x * -.6;
       }
       else
       {sprites[BALL].d.y += sprites[i].d.y;
@@ -470,27 +473,38 @@ int main(int argc, char **argv)
   Uint32 timeout = 0;
   while(!process_events(&is_npc))
   {
+     
     control_player(sprites);
     control_oponent(sprites, is_npc);
     point = bounce_ball(&sprites[BALL]);
     if (point && !ENDTURN)
     {
+        
       score[point] += 1;
       score[BALL] = point;
       ENDTURN = 1;
+        
       timeout = SDL_GetTicks() + 5000;
+        //sprite[PLAYER1].dstrect.x = 20;
+        //sprite[PLAYER2].dstrect.x = 560;
+        
     }
-    hit_net(sprites);
-    hit_ball(sprites);
-    apply_gravity(sprites);
-    apply_delta(sprites);
-    animate_players(sprites);
-    animate_ball(&sprites[BALL]);
-    render(renderer, sprites);
+      
+      if(!point){
+          
+          
+          hit_net(sprites);
+          hit_ball(sprites);
+          apply_gravity(sprites);
+          apply_delta(sprites);
+          animate_players(sprites);
+          animate_ball(&sprites[BALL]);
+          render(renderer, sprites);
+      }
     if (ENDTURN && SDL_TICKS_PASSED(SDL_GetTicks(), timeout))
     {
       SDL_Log("Player %i: %i -- Player %i: %i\n", PLAYER1, score[PLAYER1], PLAYER2, score[PLAYER2]);
-      place_sprites_on_start(sprites, score[BALL]);
+        place_sprites_on_start(sprites, score[BALL]);
       ENDTURN = 0;
     }
    }
