@@ -1,5 +1,7 @@
 #include <SDL2/SDL.h>
-#include<iostream>
+#include <SDL2/SDL_image.h>
+//#include<SDL.h>
+//#include <SDL_image.h>
 const Uint32 ANIMATION_FRAME_TIME = 1000/25*3;
 const int WINDOW_WIDTH = 640;
 const int WINDOW_HEIGHT = 480;
@@ -474,9 +476,11 @@ int main(int argc, char **argv)
   while(!process_events(&is_npc))
   {
      
-    control_player(sprites);
-    control_oponent(sprites, is_npc);
-    point = bounce_ball(&sprites[BALL]);
+      if(!ENDTURN){
+          control_player(sprites);
+          control_oponent(sprites, is_npc);
+          point = bounce_ball(&sprites[BALL]);
+      }
     if (point && !ENDTURN)
     {
         
