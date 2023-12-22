@@ -1,5 +1,7 @@
+//#include <SDL2/SDL.h>
+//#include <SDL2/SDL_image.h>
 #include <SDL2/SDL.h>
-#include<iostream>
+#include <SDL2/SDL_image.h>git 
 const Uint32 ANIMATION_FRAME_TIME = 1000/25*3;
 const int WINDOW_WIDTH = 640;
 const int WINDOW_HEIGHT = 480;
