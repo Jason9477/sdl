@@ -1,8 +1,10 @@
 //#include <SDL2/SDL.h>
 //#include <SDL2/SDL_image.h>
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>git 
-const Uint32 ANIMATION_FRAME_TIME = 1000/25*3;
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
+#include<iostream>
+const Uint32 ANIMATION_FRAME_TIME = 1000000/25*3;
 const int WINDOW_WIDTH = 640;
 const int WINDOW_HEIGHT = 480;
 const int FRAME_INIT_X = 0;
@@ -36,7 +38,7 @@ public:
   double angle; /**< rotation to apply, used only by BALL */
   Uint32 last_anim_frame_change; /**< time of last change of animation frame*/
 };
-typedef struct Sprite Sprite;
+typedef class Sprite Sprite;
 
 Sprite load_sprite(SDL_Renderer *renderer, const char *filename)
 {
@@ -83,28 +85,27 @@ void load_sprites(SDL_Renderer *renderer, Sprite *sprite)
 
 void place_sprites_on_start(Sprite *sprite, int delivery)
 {
-  sprite[PLAYER1].dstrect.x = 50;
-  sprite[PLAYER2].dstrect.x = 520;
-
-  if (delivery == PLAYER2)
-  {
-    sprite[BALL].dstrect.x = 50;
-    sprite[BALL].dstrect.y = 50;
-  }
-  else if (delivery == PLAYER1)
-  {
-    sprite[BALL].dstrect.x = 520;
-    sprite[BALL].dstrect.y = 50;
-  }
-  else
-  {
-    SDL_Quit();
-    exit(EXIT_FAILURE);
-  }
-  sprite[BALL].d.x = 0;
-  sprite[BALL].d.y = 0;
+    sprite[PLAYER1].dstrect.x = 50;
+    sprite[PLAYER2].dstrect.x = 520;
+    
+    if (delivery == PLAYER2)
+    {
+        sprite[BALL].dstrect.x = 50;
+        sprite[BALL].dstrect.y = 50;
+    }
+    else if (delivery == PLAYER1)
+    {
+        sprite[BALL].dstrect.x = 520;
+        sprite[BALL].dstrect.y = 50;
+    }
+    else
+    {
+        SDL_Quit();
+        exit(EXIT_FAILURE);
+    }
+    sprite[BALL].d.x = 0;
+    sprite[BALL].d.y = 0;
 }
-
 SDL_bool process_events(unsigned int *is_npc)
 {
   SDL_Event event;
@@ -420,14 +421,18 @@ void apply_delta(Sprite *sprites)
   }
 }
 
-void render(SDL_Renderer *renderer, Sprite *sprites)
+void render(SDL_Renderer *renderer, Sprite *sprites,SDL_Texture * bg_texture)
 {
-
   const SDL_Point *center = NULL;
   const SDL_RendererFlip flip = SDL_FLIP_NONE;
 
-  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-  SDL_RenderClear(renderer);
+        // Render the background
+    SDL_RenderClear(renderer);
+    
+        SDL_RenderCopy(renderer, bg_texture, NULL, NULL);
+        //SDL_DestroyTexture(bg_texture);
+        
+
 
   for (int i = BALL; i < NET+1; i++)
   {
@@ -441,11 +446,66 @@ void render(SDL_Renderer *renderer, Sprite *sprites)
     flip);
 
   }
-
+    
   SDL_RenderPresent(renderer);
+    
+}
+
+void show_score(SDL_Renderer *renderer)
+{
+    if (TTF_Init() == -1) {
+        SDL_Log("Unable to initialize TTF: %s\n", TTF_GetError());
+        exit(1);
+    }
+    TTF_Font* font = TTF_OpenFont("freedom.ttf", 50);
+    if (font == NULL) {
+        SDL_Log("Unable to load font: %s\n", TTF_GetError());
+        exit(1);
+    }
+    SDL_Color color = {255, 255, 255, 255}; // White
+
+    // Create a surface for the text
+    SDL_Surface* text_surface = TTF_RenderText_Blended(font,"Point scored!", color);
+    if (text_surface == NULL) {
+        SDL_Log("Unable to render text surface: %s\n", TTF_GetError());
+        exit(1);
+    }
+
+    // Create a rectangle for the text
+    SDL_Rect text_rect = {100, 100, text_surface->w, text_surface->h};
+
+    // Create a texture for the text
+    SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+    if (text_texture == NULL) {
+        SDL_Log("Unable to create texture from rendered text: %s\n", SDL_GetError());
+        exit(1);
+    }
+
+    // Render the text
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, text_texture, NULL, &text_rect);
+
+    // Clean up
+    SDL_DestroyTexture(text_texture);
+    SDL_FreeSurface(text_surface);
+    SDL_RenderPresent(renderer);
 }
 
 
+
+SDL_Surface* loadbgsurface(const char* file, SDL_Renderer *renderer)
+{
+    SDL_Surface* bg_surface = IMG_Load("a.png");
+        if (bg_surface == NULL) {
+            SDL_Log("Unable to load image: %s\n", IMG_GetError());
+            exit(1);
+        }
+
+        // Create a texture for the background
+
+   // SDL_FreeSurface(bg_surface);
+    return bg_surface;
+}
 int main(int argc, char **argv)
 {
   SDL_Window *window = NULL;
@@ -453,6 +513,7 @@ int main(int argc, char **argv)
   Sprite sprites[4];
   unsigned int score[3];
   unsigned int is_npc = 0;
+
 
   score[BALL] = 0; /**< last player who scored */
   score[PLAYER1] = 0;
@@ -479,6 +540,11 @@ int main(int argc, char **argv)
 
   load_sprites(renderer, sprites);
   place_sprites_on_start(sprites, PLAYER1);
+    SDL_Surface* bg_surface=loadbgsurface("a.png", renderer);
+    //SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
+   // SDL_FreeSurface(bg_surface);
+    //SDL_DestroyTexture(bg_texture);
+    
 
 /* <-- GAME LOOP */
 
@@ -486,19 +552,20 @@ int main(int argc, char **argv)
   Uint32 timeout = 0;
   while(!process_events(&is_npc))
   {
-     
+      SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
+      
       if(!ENDTURN){
           control_player(sprites);
           control_oponent(sprites, is_npc);
           point = bounce_ball(&sprites[BALL]);
+        
       }
     if (point && !ENDTURN)
     {
-        
       score[point] += 1;
       score[BALL] = point;
       ENDTURN = 1;
-        
+      show_score(renderer);
       timeout = SDL_GetTicks() + 5000;
         //sprite[PLAYER1].dstrect.x = 20;
         //sprite[PLAYER2].dstrect.x = 560;
@@ -514,14 +581,16 @@ int main(int argc, char **argv)
           apply_delta(sprites);
           animate_players(sprites);
           animate_ball(&sprites[BALL]);
-          render(renderer, sprites);
+          render(renderer, sprites,bg_texture);
       }
     if (ENDTURN && SDL_TICKS_PASSED(SDL_GetTicks(), timeout))
     {
+        
       SDL_Log("Player %i: %i -- Player %i: %i\n", PLAYER1, score[PLAYER1], PLAYER2, score[PLAYER2]);
         place_sprites_on_start(sprites, score[BALL]);
       ENDTURN = 0;
     }
+      SDL_DestroyTexture(bg_texture);
    }
 /* GAME LOOP -->*/
 
@@ -529,6 +598,8 @@ int main(int argc, char **argv)
   {
     SDL_DestroyTexture(sprites[i].texture);
   }
+    SDL_FreeSurface(bg_surface);
+    
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
   SDL_Quit();
