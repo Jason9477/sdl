@@ -1,7 +1,5 @@
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-//#include<SDL.h>
-//#include <SDL_image.h>
+#include<iostream>
 const Uint32 ANIMATION_FRAME_TIME = 1000/25*3;
 const int WINDOW_WIDTH = 640;
 const int WINDOW_HEIGHT = 480;
@@ -11,7 +9,7 @@ const int ANIMATION_FRAME_WIDTH = 60;
 const int ANIMATION_FRAME_HEIGHT = 60;
 int ENDTURN = 0;
 
-//jason
+
 /** Names of sprites
 * Names for array indexes to simulate associative array
 */
@@ -152,7 +150,7 @@ void control_player(Sprite *sprites)
   }
   else if (keyboard_state[SDL_SCANCODE_D])
   {
-    sprites[PLAYER1].d.x = step;
+     sprites[PLAYER1].d.x = step;
   }
   else
   {
@@ -323,6 +321,7 @@ void hit_net(Sprite *sprites)
 {
 if (SDL_HasIntersection(&sprites[BALL].dstrect, &sprites[NET].dstrect))
   {
+      std::cout<<"a";
     if (sprites[BALL].dstrect.x < sprites[NET].dstrect.x)
     {
       sprites[BALL].dstrect.x = sprites[NET].dstrect.x - sprites[BALL].dstrect.w;
@@ -404,6 +403,16 @@ void apply_delta(Sprite *sprites)
     if (sprites[i].dstrect.y < 0) /*hit CEILING */
     {
       sprites[i].dstrect.y = 0;
+    }
+    if(i==PLAYER1)
+    {
+        if(sprites[PLAYER1].dstrect.x>=260)
+            sprites[PLAYER1].dstrect.x=260;
+    }
+    else if(i==PLAYER2)
+    {
+        if(sprites[PLAYER2].dstrect.x<=320)
+            sprites[PLAYER2].dstrect.x=320;
     }
 
   }
