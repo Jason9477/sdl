@@ -11,7 +11,7 @@ const int ANIMATION_FRAME_WIDTH = 60;
 const int ANIMATION_FRAME_HEIGHT = 60;
 int ENDTURN = 0;
 
-
+//jason
 /** Names of sprites
 * Names for array indexes to simulate associative array
 */
