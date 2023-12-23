@@ -739,7 +739,7 @@ int main(int argc, char **argv)
         Uint32 timeout = 0;
         while(!process_events(&is_npc))
         {
-            if(score[1]==1||score[2]==1) {
+            if(score[1]==5||score[2]==5) {
                // std::cout<<running;
                SDL_RenderClear(renderer);
                 load_again(renderer);
