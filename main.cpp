@@ -3,6 +3,10 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
+#include <stdio.h>
+#include <string>
+#include <iostream>
 #include<iostream>
 const Uint32 ANIMATION_FRAME_TIME = 1000000/25*3;
 const int WINDOW_WIDTH = 640;
@@ -14,6 +18,36 @@ const int ANIMATION_FRAME_HEIGHT = 60;
 int ENDTURN = 0;
 int balltype=1;
 bool runagain=0;
+
+
+
+
+//The sound effects that will be used
+Mix_Music *gMusic=NULL;
+Mix_Chunk* gButton = NULL;
+Mix_Chunk* gBall = NULL;
+Mix_Chunk* gScore = NULL;
+Mix_Chunk* gJump = NULL;
+//Mix_Chunk* gMusic = NULL;
+
+
+bool loadMedia()
+{
+    if(Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG) == 0) {
+        printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+    } else {
+        if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+            printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+        }
+    }
+    gMusic = Mix_LoadMUS( "bgm.mp3" );
+    gBall = Mix_LoadWAV( "ball.mp3" );
+    gButton = Mix_LoadWAV( "button.mp3" );
+    gScore = Mix_LoadWAV( "score.mp3" );
+    gJump = Mix_LoadWAV( "jump.mp3" );
+    return true;
+}
+
 
 /** Names of sprites
 * Names for array indexes to simulate associative array
@@ -233,6 +267,7 @@ void control_player(Sprite *sprites)
 
   if (keyboard_state[SDL_SCANCODE_W])
   {
+      Mix_PlayChannel( -1, gJump, 0 );
     if (sprites[PLAYER1].dstrect.y == WINDOW_HEIGHT - ANIMATION_FRAME_HEIGHT) /* IS standing on the ground */
     {
       sprites[PLAYER1].d.y -= jump;
@@ -255,6 +290,7 @@ void control_player(Sprite *sprites)
 
   if (keyboard_state[SDL_SCANCODE_UP])
   {
+      Mix_PlayChannel( -1, gJump, 0 );
     if (sprites[PLAYER2].dstrect.y == WINDOW_HEIGHT - ANIMATION_FRAME_HEIGHT) /* IS standing on the ground */
     {
       sprites[PLAYER2].d.y-=jump;
@@ -691,6 +727,7 @@ SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 }
 int main(int argc, char **argv)
 {
+loadMedia();
     
   SDL_Window *window = NULL;
   SDL_Renderer *renderer = NULL;
@@ -758,6 +795,7 @@ int main(int argc, char **argv)
                 }
                 if (point && !ENDTURN)
                 {
+                    Mix_PlayChannel( -1, gScore, 0 );
                     score[point] += 1;
                     score[BALL] = point;
                     ENDTURN = 1;
@@ -803,6 +841,19 @@ int main(int argc, char **argv)
     SDL_DestroyTexture(sprites[i].texture);
   }
     SDL_FreeSurface(bg_surface);
+    
+    //Free the sound effects
+    Mix_FreeChunk( gBall );
+    Mix_FreeChunk( gButton );
+    Mix_FreeChunk( gScore );
+    Mix_FreeChunk( gJump );
+    Mix_FreeMusic( gMusic );
+    gMusic = NULL;
+    gBall = NULL;
+    gButton = NULL;
+    gScore = NULL;
+    gJump = NULL;
+    Mix_Quit();
     
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
