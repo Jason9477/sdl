@@ -8,6 +8,7 @@
 #include <string>
 #include <iostream>
 #include<iostream>
+#include "opening.hpp"
 const Uint32 ANIMATION_FRAME_TIME = 1000000/25*3;
 const int WINDOW_WIDTH = 640;
 const int WINDOW_HEIGHT = 480;
@@ -139,7 +140,16 @@ Point load_point(SDL_Renderer *renderer)
     return point;
 }
 
-
+class Tool : public Sprite{
+    private:
+        int player;
+    public:
+    
+    void settool(SDL_Renderer*);
+    bool playergot(int p);
+    SDL_Texture* texture;
+    Tool() : texture(NULL) , player(0){}
+};
 
 void load_sprites(SDL_Renderer *renderer, Sprite *sprite)
 {
@@ -183,7 +193,23 @@ void load_point(SDL_Renderer *renderer,Point *point)
 
 
 }
+void Tool::settool(SDL_Renderer* renderer){
+    SDL_Surface* imageSurface = SDL_LoadBMP("image/greenliquid.bmp");
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageSurface);
+    SDL_Rect destinationRect = {WINDOW_WIDTH/2-20, 400, imageSurface->w, imageSurface->h};
+    //SDL_RenderClear(renderer);
 
+    SDL_RenderCopy(renderer, texture, NULL, &destinationRect);
+
+    // Present the renderer
+    SDL_DestroyTexture(texture);
+    SDL_FreeSurface(imageSurface);
+    SDL_RenderPresent(renderer);
+}
+bool Tool::playergot(int p){
+    player=p;
+    return 0;
+}
 void place_sprites_on_start(Sprite *sprite, int delivery)
 {
     sprite[PLAYER1].dstrect.x = 50;
@@ -249,7 +275,7 @@ SDL_bool process_events(unsigned int *is_npc)
 void control_player(Sprite *sprites)
 {
   const int step = 5;
-  const int jump = 13;
+  const int jump = 16;
   const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
 
   /* PLAYER 1 */
@@ -646,7 +672,7 @@ void show_score(SDL_Renderer *renderer,unsigned int *score,Sprite* sprites)
 
 SDL_Surface* loadbgsurface(const char* file, SDL_Renderer *renderer)
 {
-    SDL_Surface* bg_surface = IMG_Load("image/a.png");
+    SDL_Surface* bg_surface = IMG_Load(file);
         if (bg_surface == NULL) {
             SDL_Log("Unable to load image: %s\n", IMG_GetError());
             exit(1);
@@ -796,13 +822,14 @@ loadMedia();
   load_sprites(renderer, sprites);
     load_point(renderer,points);
   place_sprites_on_start(sprites, PLAYER1);
-    SDL_Surface* bg_surface=loadbgsurface("image/a.png", renderer);
+    SDL_Surface* bg_surface=loadbgsurface("image/c.png", renderer);
 
 
     // Main game loop
     bool running=1;
 /* <-- GAME LOOP */
     //Mix_PlayMusic( gMusic, -1 );
+    Tool green;
     while(running){
         Mix_PlayMusic( gMusic, -1 );
         runagain=0;
@@ -810,6 +837,7 @@ loadMedia();
         int point = 0;
         Uint32 timeout = 0;
         int times=0;
+        int tool=1;
         while(!process_events(&is_npc))
         {
            
@@ -862,11 +890,14 @@ loadMedia();
                     animate_ball(&sprites[BALL]);
                     upadate_point(points,score);
                     render(renderer, sprites,bg_texture,points);
+                    if(sprites[PLAYER1].dstrect.x>=255) tool=green.playergot(1);
+                    else if(sprites[PLAYER2].dstrect.x<=315) tool=green.playergot(2);
                     
+                    if(tool==1) green.settool(renderer);
                 }
                 if (ENDTURN && SDL_TICKS_PASSED(SDL_GetTicks(), timeout))
                 {
-                    
+                    tool=1;
                     SDL_Log("Player %i: %i -- Player %i: %i\n", PLAYER1, score[PLAYER1], PLAYER2, score[PLAYER2]);
                     place_sprites_on_start(sprites, score[BALL]);
                     ENDTURN = 0;
