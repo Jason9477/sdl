@@ -15,7 +15,7 @@
 class Point: public Background{
 public:
     
-    
+    Point();
     Point(SDL_Renderer* renderer,const char* path);
     
     Point(const Point& old_point); // copy constructor

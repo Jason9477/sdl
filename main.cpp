@@ -32,6 +32,7 @@ bool game_finish=0;
 
 //The sound effects that will be used
 Mix_Music *gMusic=NULL;
+Mix_Music *gWin=NULL;
 Mix_Chunk* gButton = NULL;
 Mix_Chunk* gBall = NULL;
 Mix_Chunk* gScore = NULL;
@@ -48,11 +49,13 @@ bool loadMedia()
             printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
         }
     }
+    gWin = Mix_LoadMUS( "sounds/Win.mp3" );
     gMusic = Mix_LoadMUS( "sounds/bgm.mp3" );
     gBall = Mix_LoadWAV( "sounds/ball.mp3" );
     gButton = Mix_LoadWAV( "sounds/button.mp3" );
     gScore = Mix_LoadWAV( "sounds/score.mp3" );
     gJump = Mix_LoadWAV( "sounds/jump.mp3" );
+    
     return true;
 }
 
@@ -521,7 +524,27 @@ void apply_delta(Sprite *sprites)
   }
 }
 
-void render(SDL_Renderer *renderer, Sprite *sprites,Point apoint,Point bpoint,Background bg)
+class Points{
+    public:
+    Points(SDL_Renderer* renderer):apoint(renderer,"ttf/point.ttf"),bpoint(apoint){
+        apoint.set_xpos(10);
+        bpoint.set_xpos(580);
+    }
+    
+    void add_point(int player){
+        if(player==1) ++apoint;
+        else ++bpoint;
+    }
+    void render(SDL_Renderer* renderer){
+        apoint.render(renderer);
+        bpoint.render(renderer);
+    }
+private:
+    Point apoint;
+    Point bpoint;
+};
+
+void render(SDL_Renderer *renderer, Sprite *sprites,Points points,Background bg)
 {
   const SDL_Point *center = NULL;
   const SDL_RendererFlip flip = SDL_FLIP_NONE;
@@ -543,9 +566,8 @@ void render(SDL_Renderer *renderer, Sprite *sprites,Point apoint,Point bpoint,Ba
 
   }
 
+    points.render(renderer);
 
-    apoint.render(renderer);
-    bpoint.render(renderer);
   SDL_RenderPresent(renderer);
     
 }
@@ -701,6 +723,7 @@ void win(SDL_Renderer* renderer,int player){
     SDL_DestroyTexture(buttonTexture);
   }
 }
+
 int main(int argc, char **argv)
 {
 loadMedia();
@@ -746,11 +769,8 @@ loadMedia();
     for(int i=1;i<4;i++){
         char a[50];sprintf(a, "image/%i.png",i);
         bg[i]=Background(renderer,a);}
-    
-    Point apoint(renderer,"ttf/point.ttf");
-    Point bpoint(apoint);
-    apoint.set_xpos(10);
-    bpoint.set_xpos(580);
+    Points points(renderer);
+    //points.construct(renderer);
     
     
     
@@ -764,6 +784,7 @@ loadMedia();
     //Mix_PlayMusic( gMusic, -1 );
     Tool green;
     while(running){
+        Mix_HaltMusic();
         Mix_PlayMusic( gMusic, -1 );
         runagain=0;
         for(int i=PLAYER1;i<PLAYER2+1;i++) score[i]=0;
@@ -776,9 +797,12 @@ loadMedia();
         {
           
             if(score[1]==1||score[2]==5) {
-                Mix_HaltMusic();
-               // std::cout<<running;
+                
+                // std::cout<<running;
                 times++;
+                if(times==1){
+                    Mix_HaltMusic();
+                Mix_PlayMusic( gWin, -1 );}
                 if(times<=200){
                     win(renderer,score[BALL]);}
                 
@@ -808,8 +832,7 @@ loadMedia();
                     Mix_PlayChannel( -1, gScore, 0 );
                     score[point] += 1;
                     score[BALL] = point;
-                    if(point==1) ++apoint;
-                    else ++bpoint;
+                    points.add_point(point);
                     ENDTURN = 1;
                     show_score(renderer,score,sprites);
                     timeout = SDL_GetTicks() + 3000;
@@ -830,7 +853,7 @@ loadMedia();
                     //upadate_point(points,score);
                     //bg[0].render(renderer);
                    // printf("aaa");
-                    render(renderer, sprites,apoint,bpoint,bg[1]);
+                    render(renderer, sprites,points,bg[1]);
                     
                     if(sprites[PLAYER1].dstrect.x>=255) {tool=green.playergot(1);if(tool==1) green.settool(renderer);}
                     else if(sprites[PLAYER2].dstrect.x<=315){ tool=green.playergot(2);if(tool==1) green.settool(renderer);}
@@ -867,11 +890,13 @@ loadMedia();
     Mix_FreeChunk( gScore );
     Mix_FreeChunk( gJump );
     Mix_FreeMusic( gMusic );
+    Mix_FreeMusic( gWin );
     gMusic = NULL;
     gBall = NULL;
     gButton = NULL;
     gScore = NULL;
     gJump = NULL;
+    gWin=NULL;
     Mix_Quit();
     
   SDL_DestroyRenderer(renderer);
