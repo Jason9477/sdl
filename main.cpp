@@ -4,6 +4,10 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
+//#include <SDL.h>
+//#include <SDL_image.h>
+//include <SDL_ttf.h>
+//#include <SDL_mixer.h>
 #include <stdio.h>
 #include <string>
 #include <iostream>
@@ -11,6 +15,7 @@
 #include <cstring>
 #include "opening.hpp"
 #include "Background.hpp"
+#include "Point.hpp"
 const Uint32 ANIMATION_FRAME_TIME = 1000000/25*3;
 const int WINDOW_WIDTH = 640;
 const int WINDOW_HEIGHT = 480;
@@ -98,49 +103,6 @@ Sprite load_sprite(SDL_Renderer *renderer, const char *filename)
   sprite.angle = 0;
   return sprite;
 }
-class Point
-{
-public:
-    int num=0;
-    SDL_Rect text_rect; /**< current animation frame from sprite sheet */
-    SDL_Surface *surface;
-    SDL_Texture *texture;
-    TTF_Font *font;
-};
-Point load_point(SDL_Renderer *renderer)
-{
-    Point point;
-    if (TTF_Init() == -1) {
-    SDL_Log("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
-    exit(1);
-    }
-
-    // Load the font
-    point.font = TTF_OpenFont("ttf/point.ttf", 15);
-    if (point.font == NULL) {
-        SDL_Log("Failed to load font: %s\n", TTF_GetError());
-        exit(1);
-        }
-
-    // Set the color of the text
-    SDL_Color color = {255, 255, 255, 255}; // White color
-
-    // Render the text onto a surface
-    point.surface = TTF_RenderText_Blended(point.font, "Your text here", color);
-    if (point.surface == NULL) {
-        SDL_Log("Unable to render text surface: %s\n", TTF_GetError());
-        exit(1);
-    }
-
-    // Create a texture from the surface
-      point.texture = SDL_CreateTextureFromSurface(renderer, point.surface);
-    // Free the surface
-    SDL_FreeSurface(point.surface);
-     point.text_rect = {100, 40, 50, 50}; // Change this to position the text
-
-    
-    return point;
-}
 
 class Tool : public Sprite{
     private:
@@ -184,15 +146,6 @@ void load_sprites(SDL_Renderer *renderer, Sprite *sprite)
   sprite[NET].dstrect.y = WINDOW_HEIGHT - sprite[NET].srcrect.h;
   sprite[NET].dstrect.w = sprite[NET].srcrect.w;
   sprite[NET].dstrect.h = sprite[NET].srcrect.h;
-
-}
-void load_point(SDL_Renderer *renderer,Point *point)
-{
-    point[PLAYER1]=load_point(renderer);
-    point[PLAYER2]=load_point(renderer);
-    point[PLAYER1].text_rect.x=10;
-    point[PLAYER2].text_rect.x=580;
-
 
 }
 void Tool::settool(SDL_Renderer* renderer){
@@ -567,30 +520,14 @@ void apply_delta(Sprite *sprites)
 
   }
 }
-void upadate_point(Point *points,unsigned int *score){
-    for (int i = PLAYER1; i < PLAYER2+1; i++)
-   {
-       SDL_Color color = {255, 255, 255, 255};
-       points[i].num=score[i];
-       char new_text[10];
-       sprintf(new_text,"%d",score[i]);
-       points[i].surface=TTF_RenderText_Blended(points[i].font, new_text, color);
-      
-   }
-    
-}
 
-void render(SDL_Renderer *renderer, Sprite *sprites,Point *points,Background bg)
+void render(SDL_Renderer *renderer, Sprite *sprites,Point apoint,Point bpoint,Background bg)
 {
   const SDL_Point *center = NULL;
   const SDL_RendererFlip flip = SDL_FLIP_NONE;
 
         // Render the background
     SDL_RenderClear(renderer);
-    
-     //   SDL_RenderCopy(renderer, bg_texture, NULL, NULL);
-        //SDL_DestroyTexture(bg_texture);
-        
 
     bg.render(renderer);
   for (int i = BALL; i < NET+1; i++)
@@ -605,21 +542,10 @@ void render(SDL_Renderer *renderer, Sprite *sprites,Point *points,Background bg)
     flip);
 
   }
-   for (int i = PLAYER1; i < PLAYER2+1; i++)
-  {
-      if (points[i].surface == NULL) {
-              SDL_Log("Surface is NULL for point %d\n", i);
-              exit(1);
-          }
-      points[i].texture = SDL_CreateTextureFromSurface(renderer, points[i].surface);
-  SDL_RenderCopy(
-    renderer, points[i].texture,
-    NULL,
-    &points[i].text_rect);
-      SDL_FreeSurface(points[i].surface);
-  }
 
-    
+
+    apoint.render(renderer);
+    bpoint.render(renderer);
   SDL_RenderPresent(renderer);
     
 }
@@ -673,19 +599,7 @@ void show_score(SDL_Renderer *renderer,unsigned int *score,Sprite* sprites)
 
 
 
-SDL_Surface* loadbgsurface(const char* file, SDL_Renderer *renderer)
-{
-    SDL_Surface* bg_surface = IMG_Load(file);
-        if (bg_surface == NULL) {
-            SDL_Log("Unable to load image: %s\n", IMG_GetError());
-            exit(1);
-        }
 
-        // Create a texture for the background
-
-   // SDL_FreeSurface(bg_surface);
-    return bg_surface;
-}
 bool again(SDL_Renderer *renderer,bool running){
     //SDL_RenderClear(renderer);
     Mix_PlayChannel(-1, gButton, 0);
@@ -796,7 +710,7 @@ loadMedia();
   Sprite sprites[4];
   unsigned int score[3];
   unsigned int is_npc = 0;
-  Point points[3];
+  //Point points[3];
 
 
     
@@ -825,14 +739,22 @@ loadMedia();
 
 
   load_sprites(renderer, sprites);
-    load_point(renderer,points);
+   
   place_sprites_on_start(sprites, PLAYER1);
     Background bg[4];
     bg[0]=Background(renderer,"image/volleyball.jpg");
     for(int i=1;i<4;i++){
         char a[50];sprintf(a, "image/%i.png",i);
         bg[i]=Background(renderer,a);}
-
+    
+    Point apoint(renderer,"ttf/point.ttf");
+    Point bpoint(apoint);
+    apoint.set_xpos(10);
+    bpoint.set_xpos(580);
+    
+    
+    
+    
     //SDL_Surface* bg_surface=loadbgsurface("image/d.png", renderer);
 
 
@@ -886,6 +808,8 @@ loadMedia();
                     Mix_PlayChannel( -1, gScore, 0 );
                     score[point] += 1;
                     score[BALL] = point;
+                    if(point==1) ++apoint;
+                    else ++bpoint;
                     ENDTURN = 1;
                     show_score(renderer,score,sprites);
                     timeout = SDL_GetTicks() + 3000;
@@ -903,10 +827,10 @@ loadMedia();
                     apply_delta(sprites);
                     animate_players(sprites);
                     animate_ball(&sprites[BALL]);
-                    upadate_point(points,score);
+                    //upadate_point(points,score);
                     //bg[0].render(renderer);
                    // printf("aaa");
-                    render(renderer, sprites,points,bg[1]);
+                    render(renderer, sprites,apoint,bpoint,bg[1]);
                     
                     if(sprites[PLAYER1].dstrect.x>=255) {tool=green.playergot(1);if(tool==1) green.settool(renderer);}
                     else if(sprites[PLAYER2].dstrect.x<=315){ tool=green.playergot(2);if(tool==1) green.settool(renderer);}

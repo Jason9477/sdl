@@ -9,21 +9,23 @@
 #include<stdio.h>
 Background::Background(){};
 Background::Background(SDL_Renderer* renderer,char *a)  {
-    bg_surface = IMG_Load(a);
+    surface = IMG_Load(a);
     
-    bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);if (!bg_surface) {
+    texture = SDL_CreateTextureFromSurface(renderer, surface);if (!surface) {
         printf("IMG_Load: %s\n", IMG_GetError());}
-}
-
-void Background::destruct() const{
     
-        SDL_FreeSurface(bg_surface);
-        SDL_DestroyTexture(bg_texture);}
+}
+Background::~Background(){};
+void Background::destruct() {
+    
+        SDL_FreeSurface(surface);
+        SDL_DestroyTexture(texture);}
 
 
-void Background::render(SDL_Renderer* renderer)const {
+void Background::render(SDL_Renderer* renderer){
     
     //if(bg_texture) printf("AA");
-    SDL_RenderCopy(renderer, bg_texture, NULL, NULL);
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
     //SDL_RenderPresent(renderer);
 }
+
