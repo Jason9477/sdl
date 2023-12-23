@@ -8,7 +8,9 @@
 #include <string>
 #include <iostream>
 #include<iostream>
+#include <cstring>
 #include "opening.hpp"
+#include "Background.hpp"
 const Uint32 ANIMATION_FRAME_TIME = 1000000/25*3;
 const int WINDOW_WIDTH = 640;
 const int WINDOW_HEIGHT = 480;
@@ -19,7 +21,7 @@ const int ANIMATION_FRAME_HEIGHT = 60;
 int ENDTURN = 0;
 int balltype=1;
 bool runagain=0;
-
+bool game_finish=0;
 
 
 
@@ -144,12 +146,12 @@ class Tool : public Sprite{
     private:
         int player;
     public:
-    
     void settool(SDL_Renderer*);
     bool playergot(int p);
     SDL_Texture* texture;
     Tool() : texture(NULL) , player(0){}
 };
+
 
 void load_sprites(SDL_Renderer *renderer, Sprite *sprite)
 {
@@ -459,7 +461,8 @@ void hit_net(Sprite *sprites)
 {
 if (SDL_HasIntersection(&sprites[BALL].dstrect, &sprites[NET].dstrect))
   {
-      std::cout<<"a";
+      //std::cout<<"a";
+      
     if (sprites[BALL].dstrect.x < sprites[NET].dstrect.x)
     {
       sprites[BALL].dstrect.x = sprites[NET].dstrect.x - sprites[BALL].dstrect.w;
@@ -577,7 +580,7 @@ void upadate_point(Point *points,unsigned int *score){
     
 }
 
-void render(SDL_Renderer *renderer, Sprite *sprites,SDL_Texture * bg_texture,Point *points)
+void render(SDL_Renderer *renderer, Sprite *sprites,Point *points,Background bg)
 {
   const SDL_Point *center = NULL;
   const SDL_RendererFlip flip = SDL_FLIP_NONE;
@@ -585,11 +588,11 @@ void render(SDL_Renderer *renderer, Sprite *sprites,SDL_Texture * bg_texture,Poi
         // Render the background
     SDL_RenderClear(renderer);
     
-        SDL_RenderCopy(renderer, bg_texture, NULL, NULL);
+     //   SDL_RenderCopy(renderer, bg_texture, NULL, NULL);
         //SDL_DestroyTexture(bg_texture);
         
 
-
+    bg.render(renderer);
   for (int i = BALL; i < NET+1; i++)
   {
 
@@ -796,6 +799,8 @@ loadMedia();
   Point points[3];
 
 
+    
+
   score[BALL] = 0; /**< last player who scored */
   score[PLAYER1] = 0;
   score[PLAYER2] = 0;
@@ -822,7 +827,9 @@ loadMedia();
   load_sprites(renderer, sprites);
     load_point(renderer,points);
   place_sprites_on_start(sprites, PLAYER1);
-    SDL_Surface* bg_surface=loadbgsurface("image/c.png", renderer);
+    const Background bg[4]={Background(renderer,"image/volleyball.jpg"),Background(renderer,"image/1.png"),Background(renderer,"image/2.png"),Background(renderer,"image/3.png")};
+
+    //SDL_Surface* bg_surface=loadbgsurface("image/d.png", renderer);
 
 
     // Main game loop
@@ -838,9 +845,10 @@ loadMedia();
         Uint32 timeout = 0;
         int times=0;
         int tool=1;
+        if(tool==1) green.settool(renderer);
         while(!process_events(&is_npc))
         {
-           
+          
             if(score[1]==1||score[2]==5) {
                 Mix_HaltMusic();
                // std::cout<<running;
@@ -850,14 +858,17 @@ loadMedia();
                 
                 else{
                     SDL_RenderClear(renderer);
+                    bg[0].render(renderer);
+                    
                     load_again(renderer);
+                    
                     SDL_RenderPresent(renderer);
                     
                     if(runagain==1){ running=again(renderer,running); break;}
                 }
             }
             else{
-                SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
+                //SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
                 
                 if(!ENDTURN){
                     control_player(sprites);
@@ -889,11 +900,14 @@ loadMedia();
                     animate_players(sprites);
                     animate_ball(&sprites[BALL]);
                     upadate_point(points,score);
-                    render(renderer, sprites,bg_texture,points);
-                    if(sprites[PLAYER1].dstrect.x>=255) tool=green.playergot(1);
-                    else if(sprites[PLAYER2].dstrect.x<=315) tool=green.playergot(2);
+                    //bg[0].render(renderer);
+                   // printf("aaa");
+                    render(renderer, sprites,points,bg[1]);
                     
-                    if(tool==1) green.settool(renderer);
+                    if(sprites[PLAYER1].dstrect.x>=255) {tool=green.playergot(1);if(tool==1) green.settool(renderer);}
+                    else if(sprites[PLAYER2].dstrect.x<=315){ tool=green.playergot(2);if(tool==1) green.settool(renderer);}
+                    
+                   // if(tool==1) green.settool(renderer);
                 }
                 if (ENDTURN && SDL_TICKS_PASSED(SDL_GetTicks(), timeout))
                 {
@@ -903,7 +917,7 @@ loadMedia();
                     ENDTURN = 0;
                 }
                 
-                SDL_DestroyTexture(bg_texture);
+                //SDL_DestroyTexture(bg_texture);
             }
         }
         
@@ -912,11 +926,12 @@ loadMedia();
     }
 /* GAME LOOP -->*/
 
+    for(int i=0;i<5;i++) bg[i].destruct();
   for (int i = BALL; i < NET+1; i++)
   {
     SDL_DestroyTexture(sprites[i].texture);
   }
-    SDL_FreeSurface(bg_surface);
+    //SDL_FreeSurface(bg_surface);
     
     //Free the sound effects
     Mix_FreeChunk( gBall );
