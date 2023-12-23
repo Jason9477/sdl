@@ -60,6 +60,51 @@ Sprite load_sprite(SDL_Renderer *renderer, const char *filename)
   sprite.angle = 0;
   return sprite;
 }
+class Point
+{
+public:
+    int num=0;
+    SDL_Rect text_rect; /**< current animation frame from sprite sheet */
+    SDL_Surface *surface;
+    SDL_Texture *texture;
+    TTF_Font *font;
+};
+Point load_point(SDL_Renderer *renderer)
+{
+    Point point;
+    if (TTF_Init() == -1) {
+    SDL_Log("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
+    exit(1);
+    }
+
+    // Load the font
+    point.font = TTF_OpenFont("point.ttf", 15);
+    if (point.font == NULL) {
+        SDL_Log("Failed to load font: %s\n", TTF_GetError());
+        exit(1);
+        }
+
+    // Set the color of the text
+    SDL_Color color = {255, 255, 255, 255}; // White color
+
+    // Render the text onto a surface
+    point.surface = TTF_RenderText_Blended(point.font, "Your text here", color);
+    if (point.surface == NULL) {
+        SDL_Log("Unable to render text surface: %s\n", TTF_GetError());
+        exit(1);
+    }
+
+    // Create a texture from the surface
+      point.texture = SDL_CreateTextureFromSurface(renderer, point.surface);
+    // Free the surface
+    SDL_FreeSurface(point.surface);
+     point.text_rect = {100, 40, 50, 50}; // Change this to position the text
+
+    
+    return point;
+}
+
+
 
 void load_sprites(SDL_Renderer *renderer, Sprite *sprite)
 {
@@ -80,6 +125,15 @@ void load_sprites(SDL_Renderer *renderer, Sprite *sprite)
   sprite[NET].dstrect.y = WINDOW_HEIGHT - sprite[NET].srcrect.h;
   sprite[NET].dstrect.w = sprite[NET].srcrect.w;
   sprite[NET].dstrect.h = sprite[NET].srcrect.h;
+
+}
+void load_point(SDL_Renderer *renderer,Point *point)
+{
+    point[PLAYER1]=load_point(renderer);
+    point[PLAYER2]=load_point(renderer);
+    point[PLAYER1].text_rect.x=10;
+    point[PLAYER2].text_rect.x=580;
+
 
 }
 
@@ -420,8 +474,20 @@ void apply_delta(Sprite *sprites)
 
   }
 }
+void upadate_point(Point *points,unsigned int *score){
+    for (int i = PLAYER1; i < PLAYER2+1; i++)
+   {
+       SDL_Color color = {255, 255, 255, 255}; 
+       points[i].num=score[i];
+       char new_text[10];
+       sprintf(new_text,"%d",score[i]);
+       points[i].surface=TTF_RenderText_Blended(points[i].font, new_text, color);
+      
+   }
+    
+}
 
-void render(SDL_Renderer *renderer, Sprite *sprites,SDL_Texture * bg_texture)
+void render(SDL_Renderer *renderer, Sprite *sprites,SDL_Texture * bg_texture,Point *points)
 {
   const SDL_Point *center = NULL;
   const SDL_RendererFlip flip = SDL_FLIP_NONE;
@@ -446,6 +512,20 @@ void render(SDL_Renderer *renderer, Sprite *sprites,SDL_Texture * bg_texture)
     flip);
 
   }
+   for (int i = PLAYER1; i < PLAYER2+1; i++)
+  {
+      if (points[i].surface == NULL) {
+              SDL_Log("Surface is NULL for point %d\n", i);
+              exit(1);
+          }
+      points[i].texture = SDL_CreateTextureFromSurface(renderer, points[i].surface);
+  SDL_RenderCopy(
+    renderer, points[i].texture,
+    NULL,
+    &points[i].text_rect);
+      SDL_FreeSurface(points[i].surface);
+  }
+
     
   SDL_RenderPresent(renderer);
     
@@ -457,7 +537,7 @@ void show_score(SDL_Renderer *renderer,unsigned int *score,Sprite* sprites)
         SDL_Log("Unable to initialize TTF: %s\n", TTF_GetError());
         exit(1);
     }
-    TTF_Font* font = TTF_OpenFont("freedom.ttf", 50);
+    TTF_Font* font = TTF_OpenFont("show.ttf", 50);
     if (font == NULL) {
         SDL_Log("Unable to load font: %s\n", TTF_GetError());
         exit(1);
@@ -502,7 +582,7 @@ void show_score(SDL_Renderer *renderer,unsigned int *score,Sprite* sprites)
 
 SDL_Surface* loadbgsurface(const char* file, SDL_Renderer *renderer)
 {
-    SDL_Surface* bg_surface = IMG_Load("a.png");
+    SDL_Surface* bg_surface = IMG_Load("bg/a.png");
         if (bg_surface == NULL) {
             SDL_Log("Unable to load image: %s\n", IMG_GetError());
             exit(1);
@@ -520,6 +600,7 @@ int main(int argc, char **argv)
   Sprite sprites[4];
   unsigned int score[3];
   unsigned int is_npc = 0;
+  Point points[3];
 
 
   score[BALL] = 0; /**< last player who scored */
@@ -546,7 +627,7 @@ int main(int argc, char **argv)
 
 
   load_sprites(renderer, sprites);
-  //load score
+    load_point(renderer,points);
   place_sprites_on_start(sprites, PLAYER1);
     SDL_Surface* bg_surface=loadbgsurface("a.png", renderer);
     //SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
@@ -589,7 +670,9 @@ int main(int argc, char **argv)
           apply_delta(sprites);
           animate_players(sprites);
           animate_ball(&sprites[BALL]);
-          render(renderer, sprites,bg_texture);
+          upadate_point(points,score);
+          render(renderer, sprites,bg_texture,points);
+          
       }
     if (ENDTURN && SDL_TICKS_PASSED(SDL_GetTicks(), timeout))
     {
