@@ -477,7 +477,7 @@ void apply_delta(Sprite *sprites)
 void upadate_point(Point *points,unsigned int *score){
     for (int i = PLAYER1; i < PLAYER2+1; i++)
    {
-       SDL_Color color = {255, 255, 255, 255}; 
+       SDL_Color color = {255, 255, 255, 255};
        points[i].num=score[i];
        char new_text[10];
        sprintf(new_text,"%d",score[i]);
@@ -542,13 +542,13 @@ void show_score(SDL_Renderer *renderer,unsigned int *score,Sprite* sprites)
         SDL_Log("Unable to load font: %s\n", TTF_GetError());
         exit(1);
     }
-    SDL_Color color = {255, 255, 255, 255}; // White
+    SDL_Color color = {0, 0, 0, 255}; // White
 
     // Create a surface for the text
     char score_str[50];
 
     // Format the string
-    
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     sprintf(score_str, "PLAYER%u scored!", score[BALL]);
     SDL_Surface* text_surface = TTF_RenderText_Blended(font,score_str, color);
     if (text_surface == NULL) {
