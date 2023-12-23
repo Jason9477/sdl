@@ -1,6 +1,8 @@
-#include <SDL.h>
-#include <SDL_image.h>
-#include <SDL_ttf.h>
+//#include <SDL2/SDL.h>
+//#include <SDL2/SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 #include<iostream>
 const Uint32 ANIMATION_FRAME_TIME = 1000000/25*3;
 const int WINDOW_WIDTH = 640;
@@ -11,7 +13,7 @@ const int ANIMATION_FRAME_WIDTH = 60;
 const int ANIMATION_FRAME_HEIGHT = 60;
 int ENDTURN = 0;
 int balltype=1;
-
+bool runagain=0;
 
 /** Names of sprites
 * Names for array indexes to simulate associative array
@@ -111,8 +113,8 @@ void load_sprites(SDL_Renderer *renderer, Sprite *sprite)
   sprite[PLAYER2] = load_sprite(renderer, "player02.bmp");
   //sprite[BALL] = load_sprite(renderer, "ball.bmp");
   sprite[NET] = load_sprite(renderer, "net.bmp");
-    
-    std::cin>>balltype;
+    int balltype=1;
+    //std::cin>>balltype;
     switch (balltype) {
      case 1:
          sprite[BALL] = load_sprite(renderer, "ball.bmp");
@@ -185,7 +187,11 @@ SDL_bool process_events(unsigned int *is_npc)
 
       case SDL_QUIT:
         return SDL_TRUE;
-
+        case SDL_MOUSEBUTTONDOWN:
+            runagain=1;
+            std::cout<<"lll";
+            return SDL_FALSE;
+            
       case SDL_KEYDOWN:
         if (event.key.keysym.sym == SDLK_F1)
         {
@@ -448,19 +454,19 @@ void animate_ball(Sprite *ball)
 
 void apply_delta(Sprite *sprites)
 {
-  
   for (int i = BALL; i < PLAYER2+1; i++)
   {
-  	if (i==BALL)
-  	{
-  	sprites[BALL].dstrect.x += balltype*sprites[BALL].d.x;
-    sprites[BALL].dstrect.y += balltype*sprites[BALL].d.y;	
-	}
-	else
-	{
-	sprites[i].dstrect.x += sprites[i].d.x;
-    sprites[i].dstrect.y += sprites[i].d.y;	
-	}
+
+      if (i==BALL)
+            {
+            sprites[BALL].dstrect.x += balltype*sprites[BALL].d.x;
+          sprites[BALL].dstrect.y += balltype*sprites[BALL].d.y;
+          }
+          else
+          {
+          sprites[i].dstrect.x += sprites[i].d.x;
+          sprites[i].dstrect.y += sprites[i].d.y;
+          }
 
     if (sprites[i].dstrect.x < 0)
     {
@@ -613,6 +619,76 @@ SDL_Surface* loadbgsurface(const char* file, SDL_Renderer *renderer)
    // SDL_FreeSurface(bg_surface);
     return bg_surface;
 }
+bool again(SDL_Renderer *renderer,bool running){
+    //SDL_RenderClear(renderer);
+    SDL_Rect playAgainButton = { 120, 100, 400, 100 };
+    SDL_Rect exitButton = { 220, 300, 200, 100 };
+    
+    // Main game loop
+    
+   
+                int x, y;
+                SDL_GetMouseState(&x, &y);
+    
+        // Check if the Play Again button was clicked
+        if (x >= playAgainButton.x && x <= playAgainButton.x + playAgainButton.w &&
+            y >= playAgainButton.y && y <= playAgainButton.y + playAgainButton.h) {
+            // Restart the game
+            return 1;
+        }
+        
+        // Check if the Exit button was clicked
+        else if (x >= exitButton.x && x <= exitButton.x + exitButton.w &&
+                 y >= exitButton.y && y <= exitButton.y + exitButton.h) {
+            return 0;
+            
+        }
+    
+                
+    
+
+    return 0;
+}
+void load_again(SDL_Renderer* renderer){
+    
+    SDL_Surface* buttonSurface = SDL_LoadBMP("again.bmp");
+    if (buttonSurface == NULL) {
+        SDL_Log("Unable to load image! SDL Error: %s\n", SDL_GetError());
+        // handle error
+    }
+    
+  // Load the font
+
+
+  SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, buttonSurface);
+
+// Free the surface
+
+  SDL_Rect playAgainButton = { 120, 100, 400, 100 };
+  SDL_Rect exitButton = { 220, 300, 200, 100 };
+    //SDL_Rect exitButton = { 100, 200, 200, 50 };
+      //SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
+ //SDL_RenderFillRect(renderer, &playAgainButton);
+ SDL_RenderCopy(renderer, textTexture, NULL, &playAgainButton);
+    SDL_FreeSurface(buttonSurface);
+
+// Create the text texture
+    buttonSurface = SDL_LoadBMP("exit.bmp");
+    if (buttonSurface == NULL) {
+        SDL_Log("Unable to load image! SDL Error: %s\n", SDL_GetError());
+        // handle error
+    }
+textTexture = SDL_CreateTextureFromSurface(renderer, buttonSurface);
+
+// Free the surface
+
+SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  //SDL_RenderDrawRect(renderer, &exitButton);
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderCopy(renderer, textTexture, NULL, &exitButton);
+    SDL_DestroyTexture(textTexture);
+
+}
 int main(int argc, char **argv)
 {
     
@@ -633,7 +709,7 @@ int main(int argc, char **argv)
   SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
 
   window = SDL_CreateWindow(
-    "Arcade Volleybal",
+    "NTU Volleyball",
     SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED,
     WINDOW_WIDTH,
@@ -651,63 +727,74 @@ int main(int argc, char **argv)
     load_point(renderer,points);
   place_sprites_on_start(sprites, PLAYER1);
     SDL_Surface* bg_surface=loadbgsurface("a.png", renderer);
-    //SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
-   // SDL_FreeSurface(bg_surface);
-    //SDL_DestroyTexture(bg_texture);
-    
 
+
+    // Main game loop
+    bool running=1;
 /* <-- GAME LOOP */
-    while(1){
+    while(running){
+        runagain=0;
+        for(int i=PLAYER1;i<PLAYER2+1;i++) score[i]=0;
         int point = 0;
         Uint32 timeout = 0;
         while(!process_events(&is_npc))
         {
-            SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
-            
-            if(!ENDTURN){
-                control_player(sprites);
-                control_oponent(sprites, is_npc);
-                point = bounce_ball(&sprites[BALL]);
+            if(score[1]==1||score[2]==1) {
+               // std::cout<<running;
+               SDL_RenderClear(renderer);
+                load_again(renderer);
+                SDL_RenderPresent(renderer);
                 
+                if(runagain==1){ running=again(renderer,running); break;}
             }
-            if (point && !ENDTURN)
-            {
-                score[point] += 1;
-                score[BALL] = point;
-                ENDTURN = 1;
-                show_score(renderer,score,sprites);
-                timeout = SDL_GetTicks() + 3000;
-                //sprite[PLAYER1].dstrect.x = 20;
-                //sprite[PLAYER2].dstrect.x = 560;
+            else{
+                SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
                 
+                if(!ENDTURN){
+                    control_player(sprites);
+                    control_oponent(sprites, is_npc);
+                    point = bounce_ball(&sprites[BALL]);
+                    
+                }
+                if (point && !ENDTURN)
+                {
+                    score[point] += 1;
+                    score[BALL] = point;
+                    ENDTURN = 1;
+                    show_score(renderer,score,sprites);
+                    timeout = SDL_GetTicks() + 3000;
+                    //sprite[PLAYER1].dstrect.x = 20;
+                    //sprite[PLAYER2].dstrect.x = 560;
+                    
+                }
+                
+                if(!point){
+                    
+                    
+                    hit_net(sprites);
+                    hit_ball(sprites);
+                    apply_gravity(sprites);
+                    apply_delta(sprites);
+                    animate_players(sprites);
+                    animate_ball(&sprites[BALL]);
+                    upadate_point(points,score);
+                    render(renderer, sprites,bg_texture,points);
+                    
+                }
+                if (ENDTURN && SDL_TICKS_PASSED(SDL_GetTicks(), timeout))
+                {
+                    
+                    SDL_Log("Player %i: %i -- Player %i: %i\n", PLAYER1, score[PLAYER1], PLAYER2, score[PLAYER2]);
+                    place_sprites_on_start(sprites, score[BALL]);
+                    ENDTURN = 0;
+                }
+                
+                SDL_DestroyTexture(bg_texture);
             }
-            
-            if(!point){
-                
-                
-                hit_net(sprites);
-                hit_ball(sprites);
-                apply_gravity(sprites);
-                apply_delta(sprites);
-                animate_players(sprites);
-                animate_ball(&sprites[BALL]);
-                upadate_point(points,score);
-                render(renderer, sprites,bg_texture,points);
-                
-            }
-            if (ENDTURN && SDL_TICKS_PASSED(SDL_GetTicks(), timeout))
-            {
-                
-                SDL_Log("Player %i: %i -- Player %i: %i\n", PLAYER1, score[PLAYER1], PLAYER2, score[PLAYER2]);
-                place_sprites_on_start(sprites, score[BALL]);
-                ENDTURN = 0;
-            }
-            if(score[1]==2||score[2]==2) break;
-            SDL_DestroyTexture(bg_texture);
         }
-        bool play;
-        std::cin>>play;
-        if(!play) break;
+        
+        
+        //SDL_Delay(5000);
     }
 /* GAME LOOP -->*/
 
