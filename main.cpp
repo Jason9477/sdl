@@ -10,6 +10,10 @@ const int FRAME_INIT_Y = 0;
 const int ANIMATION_FRAME_WIDTH = 60;
 const int ANIMATION_FRAME_HEIGHT = 60;
 int ENDTURN = 0;
+<<<<<<< Updated upstream
+=======
+int balltype=1;
+>>>>>>> Stashed changes
 
 
 /** Names of sprites
@@ -61,6 +65,7 @@ Sprite load_sprite(SDL_Renderer *renderer, const char *filename)
 
 void load_sprites(SDL_Renderer *renderer, Sprite *sprite,const int balltype )
 {
+<<<<<<< Updated upstream
   sprite[PLAYER1] = load_sprite(renderer, "player01.bmp");
   sprite[PLAYER2] = load_sprite(renderer, "player02.bmp");
   
@@ -76,6 +81,72 @@ void load_sprites(SDL_Renderer *renderer, Sprite *sprite,const int balltype )
   	sprite[BALL] = load_sprite(renderer, "ball2.bmp");
   	break;	
 }
+=======
+public:
+    int num=0;
+    SDL_Rect text_rect; /**< current animation frame from sprite sheet */
+    SDL_Surface *surface;
+    SDL_Texture *texture;
+    TTF_Font *font;
+};
+Point load_point(SDL_Renderer *renderer)
+{
+    Point point;
+    if (TTF_Init() == -1) {
+    SDL_Log("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
+    exit(1);
+    }
+
+    // Load the font
+    point.font = TTF_OpenFont("point.ttf", 15);
+    if (point.font == NULL) {
+        SDL_Log("Failed to load font: %s\n", TTF_GetError());
+        exit(1);
+        }
+
+    // Set the color of the text
+    SDL_Color color = {255, 255, 255, 255}; // White color
+
+    // Render the text onto a surface
+    point.surface = TTF_RenderText_Blended(point.font, "Your text here", color);
+    if (point.surface == NULL) {
+        SDL_Log("Unable to render text surface: %s\n", TTF_GetError());
+        exit(1);
+    }
+
+    // Create a texture from the surface
+      point.texture = SDL_CreateTextureFromSurface(renderer, point.surface);
+    // Free the surface
+    SDL_FreeSurface(point.surface);
+     point.text_rect = {100, 40, 50, 50}; // Change this to position the text
+
+    
+    return point;
+}
+
+
+
+void load_sprites(SDL_Renderer *renderer, Sprite *sprite)
+{
+  sprite[PLAYER1] = load_sprite(renderer, "player01.bmp");
+  sprite[PLAYER2] = load_sprite(renderer, "player02.bmp");
+  //sprite[BALL] = load_sprite(renderer, "ball.bmp");
+  sprite[NET] = load_sprite(renderer, "net.bmp");
+    
+    std::cin>>balltype;
+    switch (balltype) {
+     case 1:
+         sprite[BALL] = load_sprite(renderer, "ball.bmp");
+         break;
+     case 2:
+         sprite[BALL] = load_sprite(renderer, "ball1.bmp");
+         break;
+     case 3:
+         sprite[BALL] = load_sprite(renderer, "ball2.bmp");
+         break;
+   }
+
+>>>>>>> Stashed changes
   sprite[PLAYER1].dstrect.y = WINDOW_HEIGHT - ANIMATION_FRAME_HEIGHT;
   sprite[PLAYER2].dstrect.y = WINDOW_HEIGHT - ANIMATION_FRAME_HEIGHT;
 
@@ -390,10 +461,24 @@ void animate_ball(Sprite *ball)
 
 void apply_delta(Sprite *sprites)
 {
+  
   for (int i = BALL; i < PLAYER2+1; i++)
   {
+<<<<<<< Updated upstream
     sprites[i].dstrect.x += sprites[i].d.x;
     sprites[i].dstrect.y += sprites[i].d.y;
+=======
+  	if (i==BALL)
+  	{
+  	sprites[BALL].dstrect.x += balltype*sprites[BALL].d.x;
+    sprites[BALL].dstrect.y += balltype*sprites[BALL].d.y;	
+	}
+	else
+	{
+	sprites[i].dstrect.x += sprites[i].d.x;
+    sprites[i].dstrect.y += sprites[i].d.y;	
+	}
+>>>>>>> Stashed changes
 
     if (sprites[i].dstrect.x < 0)
     {
@@ -464,7 +549,11 @@ void show_score(SDL_Renderer *renderer,unsigned int *score,Sprite* sprites)
         SDL_Log("Unable to initialize TTF: %s\n", TTF_GetError());
         exit(1);
     }
+<<<<<<< Updated upstream
     TTF_Font* font = TTF_OpenFont("freedom.ttf", 50);
+=======
+    TTF_Font* font = TTF_OpenFont("show.ttf", 50);
+>>>>>>> Stashed changes
     if (font == NULL) {
         SDL_Log("Unable to load font: %s\n", TTF_GetError());
         exit(1);
@@ -509,7 +598,11 @@ void show_score(SDL_Renderer *renderer,unsigned int *score,Sprite* sprites)
 
 SDL_Surface* loadbgsurface(const char* file, SDL_Renderer *renderer)
 {
+<<<<<<< Updated upstream
     SDL_Surface* bg_surface = IMG_Load("a.png");
+=======
+    SDL_Surface* bg_surface = IMG_Load("bg/a.png");
+>>>>>>> Stashed changes
         if (bg_surface == NULL) {
             SDL_Log("Unable to load image: %s\n", IMG_GetError());
             exit(1);
@@ -520,8 +613,113 @@ SDL_Surface* loadbgsurface(const char* file, SDL_Renderer *renderer)
    // SDL_FreeSurface(bg_surface);
     return bg_surface;
 }
+<<<<<<< Updated upstream
 int main(int argc, char **argv)
 {
+=======
+class Tool : public Sprite{
+	private:
+		int player;
+	public: 
+	
+	void settool(SDL_Renderer*);
+	bool playergot(int p);
+	SDL_Texture* texture;  
+    Tool() : texture(NULL) , player(0){}		
+};
+void Tool::settool(SDL_Renderer* renderer){
+	SDL_Surface* imageSurface = SDL_LoadBMP("greenliquid.bmp");
+	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageSurface);
+	SDL_Rect destinationRect = {WINDOW_WIDTH/2-20, 400, imageSurface->w, imageSurface->h};
+	//SDL_RenderClear(renderer);
+
+    SDL_RenderCopy(renderer, texture, NULL, &destinationRect);
+
+    // Present the renderer
+    SDL_DestroyTexture(texture);
+    SDL_FreeSurface(imageSurface);
+    SDL_RenderPresent(renderer);
+}
+<<<<<<< HEAD
+bool Tool::playergot(int p){
+	player=p;
+	return 0;
+=======
+void load_again(SDL_Renderer* renderer){
+    
+    SDL_Surface* buttonSurface = SDL_LoadBMP("image/again.bmp");
+    if (buttonSurface == NULL) {
+        SDL_Log("Unable to load image! SDL Error: %s\n", SDL_GetError());
+        // handle error
+    }
+    
+  // Load the font
+
+
+  SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, buttonSurface);
+
+// Free the surface
+
+  SDL_Rect playAgainButton = { 120, 100, 400, 100 };
+  SDL_Rect exitButton = { 220, 300, 200, 100 };
+    //SDL_Rect exitButton = { 100, 200, 200, 50 };
+      //SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
+ //SDL_RenderFillRect(renderer, &playAgainButton);
+ SDL_RenderCopy(renderer, textTexture, NULL, &playAgainButton);
+    SDL_FreeSurface(buttonSurface);
+
+// Create the text texture
+    buttonSurface = SDL_LoadBMP("image/exit.bmp");
+    if (buttonSurface == NULL) {
+        SDL_Log("Unable to load image! SDL Error: %s\n", SDL_GetError());
+        // handle error
+    }
+textTexture = SDL_CreateTextureFromSurface(renderer, buttonSurface);
+
+// Free the surface
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  //SDL_RenderDrawRect(renderer, &exitButton);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderCopy(renderer, textTexture, NULL, &exitButton);
+    SDL_DestroyTexture(textTexture);
+
+>>>>>>> e263930383121df385356671a0d2079c81817063
+}
+void win(SDL_Renderer* renderer,int player){
+  SDL_Surface* buttonSurface = NULL;
+    SDL_RenderClear(renderer);
+  if(player==1){
+    buttonSurface = SDL_LoadBMP("image/win1.bmp");
+  }
+  else{
+    buttonSurface = SDL_LoadBMP("image/win2.bmp");
+  }
+
+  if (buttonSurface == NULL) {
+    SDL_Log("Unable to load image! SDL Error: %s\n", SDL_GetError());
+    // handle error
+  } else {
+    // Create a texture from the surface
+    SDL_Texture* buttonTexture = SDL_CreateTextureFromSurface(renderer, buttonSurface);
+    if (buttonTexture == NULL) {
+      SDL_Log("Unable to create texture! SDL Error: %s\n", SDL_GetError());
+      // handle error
+    } else {
+      // Render the texture
+      SDL_RenderCopy(renderer, buttonTexture, NULL, NULL);
+      SDL_RenderPresent(renderer);
+    }
+      //SDL_Delay(5000);
+    // Clean up
+    SDL_FreeSurface(buttonSurface);
+    SDL_DestroyTexture(buttonTexture);
+  }
+}
+int main(int argc, char **argv)
+{
+    
+>>>>>>> Stashed changes
   SDL_Window *window = NULL;
   SDL_Renderer *renderer = NULL;
   Sprite sprites[4];
@@ -561,6 +759,7 @@ int main(int argc, char **argv)
    // SDL_FreeSurface(bg_surface);
     //SDL_DestroyTexture(bg_texture);
     
+<<<<<<< Updated upstream
 
 /* <-- GAME LOOP */
 
@@ -586,6 +785,146 @@ int main(int argc, char **argv)
         //sprite[PLAYER1].dstrect.x = 20;
         //sprite[PLAYER2].dstrect.x = 560;
         
+=======
+	Tool green;
+/* <-- GAME LOOP */
+<<<<<<< HEAD
+    while(1){
+        int point = 0;
+        Uint32 timeout = 0;
+        int tool=1;
+        while(!process_events(&is_npc))
+        {
+            SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
+            
+            if(!ENDTURN){
+                control_player(sprites);
+                control_oponent(sprites, is_npc);
+                point = bounce_ball(&sprites[BALL]);
+                
+=======
+    //Mix_PlayMusic( gMusic, -1 );
+    while(running){
+        Mix_PlayMusic( gMusic, -1 );
+        runagain=0;
+        for(int i=PLAYER1;i<PLAYER2+1;i++) score[i]=0;
+        int point = 0;
+        Uint32 timeout = 0;
+        int times=0;
+        while(!process_events(&is_npc))
+        {
+           
+            if(score[1]==1||score[2]==5) {
+                Mix_HaltMusic();
+               // std::cout<<running;
+                times++;
+                if(times<=200){
+                    win(renderer,score[BALL]);}
+                
+                else{
+                    SDL_RenderClear(renderer);
+                    load_again(renderer);
+                    SDL_RenderPresent(renderer);
+                    
+                    if(runagain==1){ running=again(renderer,running); break;}
+                }
+>>>>>>> e263930383121df385356671a0d2079c81817063
+            }
+            if (point && !ENDTURN)
+            {
+                score[point] += 1;
+                score[BALL] = point;
+                ENDTURN = 1;
+                show_score(renderer,score,sprites);
+                
+<<<<<<< HEAD
+                timeout = SDL_GetTicks() + 3000;
+                //sprite[PLAYER1].dstrect.x = 20;
+                //sprite[PLAYER2].dstrect.x = 560;
+                
+=======
+                if(!ENDTURN){
+                    control_player(sprites);
+                    control_oponent(sprites, is_npc);
+                    point = bounce_ball(&sprites[BALL]);
+                    
+                }
+                if (point && !ENDTURN)
+                {
+                    //Mix_HaltMusic();
+                    Mix_PlayChannel( -1, gScore, 0 );
+                    score[point] += 1;
+                    score[BALL] = point;
+                    ENDTURN = 1;
+                    show_score(renderer,score,sprites);
+                    timeout = SDL_GetTicks() + 3000;
+                    //sprite[PLAYER1].dstrect.x = 20;
+                    //sprite[PLAYER2].dstrect.x = 560;
+                    
+                }
+                
+                if(!point){
+                    
+                    //Mix_PlayMusic( gMusic, -1 );
+                    hit_net(sprites);
+                    hit_ball(sprites);
+                    apply_gravity(sprites);
+                    apply_delta(sprites);
+                    animate_players(sprites);
+                    animate_ball(&sprites[BALL]);
+                    upadate_point(points,score);
+                    render(renderer, sprites,bg_texture,points);
+                    
+                }
+                if (ENDTURN && SDL_TICKS_PASSED(SDL_GetTicks(), timeout))
+                {
+                    
+                    SDL_Log("Player %i: %i -- Player %i: %i\n", PLAYER1, score[PLAYER1], PLAYER2, score[PLAYER2]);
+                    place_sprites_on_start(sprites, score[BALL]);
+                    ENDTURN = 0;
+                }
+                
+                SDL_DestroyTexture(bg_texture);
+>>>>>>> e263930383121df385356671a0d2079c81817063
+            }
+            
+            if(!point){
+                
+                
+                hit_net(sprites);
+                hit_ball(sprites);
+                apply_gravity(sprites);
+                apply_delta(sprites);
+                animate_players(sprites);
+                animate_ball(&sprites[BALL]);
+				upadate_point(points,score);
+                render(renderer, sprites,bg_texture,points);
+				
+				
+				if(sprites[PLAYER1].dstrect.x>=255) tool=green.playergot(1);
+				else if(sprites[PLAYER2].dstrect.x<=315) tool=green.playergot(2);
+				
+				if(tool==1) green.settool(renderer);
+				
+				
+                
+                
+            }
+            if (ENDTURN && SDL_TICKS_PASSED(SDL_GetTicks(), timeout))
+            {
+                tool=1;
+                SDL_Log("Player %i: %i -- Player %i: %i\n", PLAYER1, score[PLAYER1], PLAYER2, score[PLAYER2]);
+                place_sprites_on_start(sprites, score[BALL]);
+                ENDTURN = 0;
+            }
+            
+            	
+            SDL_DestroyTexture(bg_texture);
+        }
+        bool play;
+        std::cin>>play;
+        if(!play) break;
+>>>>>>> Stashed changes
     }
       
       if(!point){
