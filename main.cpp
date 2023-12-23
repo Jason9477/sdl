@@ -143,7 +143,7 @@ SDL_bool process_events(unsigned int *is_npc)
 void control_player(Sprite *sprites)
 {
   const int step = 5;
-  const int jump = 16;
+  const int jump = 13;
   const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
 
   /* PLAYER 1 */
@@ -257,7 +257,7 @@ void apply_gravity(Sprite *sprites)
     if (sprites[i].dstrect.y < WINDOW_HEIGHT - sprites[i].dstrect.h)
     {
     
-      sprites[i].d.y += (i==BALL?0.2:1);
+      sprites[i].d.y += (i==BALL?0.3:0.7);
       
     }
   }
@@ -267,8 +267,8 @@ int bounce_ball(Sprite *ball)
 {
   if (ball->dstrect.y >= WINDOW_HEIGHT - ball->dstrect.h) /* hit GROUND*/
   {
-    ball->d.y = ball->d.y * -0.9;
-    ball->d.x *= 0.9;
+    ball->d.y = ball->d.y * -0.5;
+    ball->d.x *= 0.5;
     if (ball->dstrect.x > WINDOW_WIDTH / 2)
       {return PLAYER1;}
     else
@@ -451,7 +451,7 @@ void render(SDL_Renderer *renderer, Sprite *sprites,SDL_Texture * bg_texture)
     
 }
 
-void show_score(SDL_Renderer *renderer)
+void show_score(SDL_Renderer *renderer,unsigned int *score,Sprite* sprites)
 {
     if (TTF_Init() == -1) {
         SDL_Log("Unable to initialize TTF: %s\n", TTF_GetError());
@@ -465,7 +465,12 @@ void show_score(SDL_Renderer *renderer)
     SDL_Color color = {255, 255, 255, 255}; // White
 
     // Create a surface for the text
-    SDL_Surface* text_surface = TTF_RenderText_Blended(font,"Point scored!", color);
+    char score_str[50];
+
+    // Format the string
+    
+    sprintf(score_str, "PLAYER%u scored!", score[BALL]);
+    SDL_Surface* text_surface = TTF_RenderText_Blended(font,score_str, color);
     if (text_surface == NULL) {
         SDL_Log("Unable to render text surface: %s\n", TTF_GetError());
         exit(1);
@@ -484,7 +489,9 @@ void show_score(SDL_Renderer *renderer)
     // Render the text
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, text_texture, NULL, &text_rect);
-
+    int i=score[BALL];
+    SDL_RenderCopy(renderer, sprites[i].texture,&sprites[i].srcrect,&sprites[i].dstrect);
+                   
     // Clean up
     SDL_DestroyTexture(text_texture);
     SDL_FreeSurface(text_surface);
@@ -539,6 +546,7 @@ int main(int argc, char **argv)
 
 
   load_sprites(renderer, sprites);
+  //load score
   place_sprites_on_start(sprites, PLAYER1);
     SDL_Surface* bg_surface=loadbgsurface("a.png", renderer);
     //SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
@@ -565,7 +573,7 @@ int main(int argc, char **argv)
       score[point] += 1;
       score[BALL] = point;
       ENDTURN = 1;
-      show_score(renderer);
+      show_score(renderer,score,sprites);
       timeout = SDL_GetTicks() + 5000;
         //sprite[PLAYER1].dstrect.x = 20;
         //sprite[PLAYER2].dstrect.x = 560;
