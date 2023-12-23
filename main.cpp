@@ -1,8 +1,6 @@
-//#include <SDL2/SDL.h>
-//#include <SDL2/SDL_image.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
+#include <SDL.h>
+#include <SDL_image.h>
+#include <SDL_ttf.h>
 #include<iostream>
 const Uint32 ANIMATION_FRAME_TIME = 1000000/25*3;
 const int WINDOW_WIDTH = 640;
@@ -61,14 +59,23 @@ Sprite load_sprite(SDL_Renderer *renderer, const char *filename)
   return sprite;
 }
 
-void load_sprites(SDL_Renderer *renderer, Sprite *sprite)
+void load_sprites(SDL_Renderer *renderer, Sprite *sprite,const int balltype )
 {
   sprite[PLAYER1] = load_sprite(renderer, "player01.bmp");
   sprite[PLAYER2] = load_sprite(renderer, "player02.bmp");
-  sprite[BALL] = load_sprite(renderer, "ball.bmp");
+  
   sprite[NET] = load_sprite(renderer, "net.bmp");
-
-
+  switch (balltype) {
+  case 1:
+  	sprite[BALL] = load_sprite(renderer, "ball.bmp");
+  	break;
+  case 2:
+  	sprite[BALL] = load_sprite(renderer, "ball1.bmp");
+  	break;	
+  case 3:
+  	sprite[BALL] = load_sprite(renderer, "ball2.bmp");
+  	break;	
+}
   sprite[PLAYER1].dstrect.y = WINDOW_HEIGHT - ANIMATION_FRAME_HEIGHT;
   sprite[PLAYER2].dstrect.y = WINDOW_HEIGHT - ANIMATION_FRAME_HEIGHT;
 
@@ -544,8 +551,9 @@ int main(int argc, char **argv)
     -1,
    SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-
-  load_sprites(renderer, sprites);
+  int Balltype;
+  std::cin>>Balltype;
+  load_sprites(renderer, sprites,Balltype);
   //load score
   place_sprites_on_start(sprites, PLAYER1);
     SDL_Surface* bg_surface=loadbgsurface("a.png", renderer);
