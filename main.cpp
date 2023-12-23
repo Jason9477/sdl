@@ -721,12 +721,42 @@ textTexture = SDL_CreateTextureFromSurface(renderer, buttonSurface);
 
 // Free the surface
 
-SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
   //SDL_RenderDrawRect(renderer, &exitButton);
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderCopy(renderer, textTexture, NULL, &exitButton);
     SDL_DestroyTexture(textTexture);
 
+}
+void win(SDL_Renderer* renderer,int player){
+  SDL_Surface* buttonSurface = NULL;
+    SDL_RenderClear(renderer);
+  if(player==1){
+    buttonSurface = SDL_LoadBMP("image/win1.bmp");
+  }
+  else{
+    buttonSurface = SDL_LoadBMP("image/win2.bmp");
+  }
+
+  if (buttonSurface == NULL) {
+    SDL_Log("Unable to load image! SDL Error: %s\n", SDL_GetError());
+    // handle error
+  } else {
+    // Create a texture from the surface
+    SDL_Texture* buttonTexture = SDL_CreateTextureFromSurface(renderer, buttonSurface);
+    if (buttonTexture == NULL) {
+      SDL_Log("Unable to create texture! SDL Error: %s\n", SDL_GetError());
+      // handle error
+    } else {
+      // Render the texture
+      SDL_RenderCopy(renderer, buttonTexture, NULL, NULL);
+      SDL_RenderPresent(renderer);
+    }
+      //SDL_Delay(5000);
+    // Clean up
+    SDL_FreeSurface(buttonSurface);
+    SDL_DestroyTexture(buttonTexture);
+  }
 }
 int main(int argc, char **argv)
 {
@@ -772,20 +802,31 @@ loadMedia();
     // Main game loop
     bool running=1;
 /* <-- GAME LOOP */
+    //Mix_PlayMusic( gMusic, -1 );
     while(running){
+        Mix_PlayMusic( gMusic, -1 );
         runagain=0;
         for(int i=PLAYER1;i<PLAYER2+1;i++) score[i]=0;
         int point = 0;
         Uint32 timeout = 0;
+        int times=0;
         while(!process_events(&is_npc))
         {
-            if(score[1]==5||score[2]==5) {
+           
+            if(score[1]==1||score[2]==5) {
+                Mix_HaltMusic();
                // std::cout<<running;
-               SDL_RenderClear(renderer);
-                load_again(renderer);
-                SDL_RenderPresent(renderer);
+                times++;
+                if(times<=200){
+                    win(renderer,score[BALL]);}
                 
-                if(runagain==1){ running=again(renderer,running); break;}
+                else{
+                    SDL_RenderClear(renderer);
+                    load_again(renderer);
+                    SDL_RenderPresent(renderer);
+                    
+                    if(runagain==1){ running=again(renderer,running); break;}
+                }
             }
             else{
                 SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
@@ -798,6 +839,7 @@ loadMedia();
                 }
                 if (point && !ENDTURN)
                 {
+                    //Mix_HaltMusic();
                     Mix_PlayChannel( -1, gScore, 0 );
                     score[point] += 1;
                     score[BALL] = point;
@@ -811,7 +853,7 @@ loadMedia();
                 
                 if(!point){
                     
-                    
+                    //Mix_PlayMusic( gMusic, -1 );
                     hit_net(sprites);
                     hit_ball(sprites);
                     apply_gravity(sprites);
