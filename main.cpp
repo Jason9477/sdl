@@ -827,7 +827,11 @@ loadMedia();
   load_sprites(renderer, sprites);
     load_point(renderer,points);
   place_sprites_on_start(sprites, PLAYER1);
-    const Background bg[4]={Background(renderer,"image/volleyball.jpg"),Background(renderer,"image/1.png"),Background(renderer,"image/2.png"),Background(renderer,"image/3.png")};
+    Background bg[4];
+    bg[0]=Background(renderer,"image/volleyball.jpg");
+    for(int i=1;i<4;i++){
+        char a[50];sprintf(a, "image/%i.png",i);
+        bg[i]=Background(renderer,a);}
 
     //SDL_Surface* bg_surface=loadbgsurface("image/d.png", renderer);
 
