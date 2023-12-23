@@ -110,9 +110,21 @@ void load_sprites(SDL_Renderer *renderer, Sprite *sprite)
 {
   sprite[PLAYER1] = load_sprite(renderer, "player01.bmp");
   sprite[PLAYER2] = load_sprite(renderer, "player02.bmp");
-  sprite[BALL] = load_sprite(renderer, "ball.bmp");
+  //sprite[BALL] = load_sprite(renderer, "ball.bmp");
   sprite[NET] = load_sprite(renderer, "net.bmp");
-
+    int balltype;
+    std::cin>>balltype;
+    switch (balltype) {
+     case 1:
+         sprite[BALL] = load_sprite(renderer, "ball.bmp");
+         break;
+     case 2:
+         sprite[BALL] = load_sprite(renderer, "ball1.bmp");
+         break;
+     case 3:
+         sprite[BALL] = load_sprite(renderer, "ball2.bmp");
+         break;
+   }
 
   sprite[PLAYER1].dstrect.y = WINDOW_HEIGHT - ANIMATION_FRAME_HEIGHT;
   sprite[PLAYER2].dstrect.y = WINDOW_HEIGHT - ANIMATION_FRAME_HEIGHT;
@@ -595,6 +607,7 @@ SDL_Surface* loadbgsurface(const char* file, SDL_Renderer *renderer)
 }
 int main(int argc, char **argv)
 {
+    
   SDL_Window *window = NULL;
   SDL_Renderer *renderer = NULL;
   Sprite sprites[4];
@@ -636,53 +649,58 @@ int main(int argc, char **argv)
     
 
 /* <-- GAME LOOP */
-
-  int point = 0;
-  Uint32 timeout = 0;
-  while(!process_events(&is_npc))
-  {
-      SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
-      
-      if(!ENDTURN){
-          control_player(sprites);
-          control_oponent(sprites, is_npc);
-          point = bounce_ball(&sprites[BALL]);
-        
-      }
-    if (point && !ENDTURN)
-    {
-      score[point] += 1;
-      score[BALL] = point;
-      ENDTURN = 1;
-      show_score(renderer,score,sprites);
-      timeout = SDL_GetTicks() + 5000;
-        //sprite[PLAYER1].dstrect.x = 20;
-        //sprite[PLAYER2].dstrect.x = 560;
-        
+    while(1){
+        int point = 0;
+        Uint32 timeout = 0;
+        while(!process_events(&is_npc))
+        {
+            SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
+            
+            if(!ENDTURN){
+                control_player(sprites);
+                control_oponent(sprites, is_npc);
+                point = bounce_ball(&sprites[BALL]);
+                
+            }
+            if (point && !ENDTURN)
+            {
+                score[point] += 1;
+                score[BALL] = point;
+                ENDTURN = 1;
+                show_score(renderer,score,sprites);
+                timeout = SDL_GetTicks() + 3000;
+                //sprite[PLAYER1].dstrect.x = 20;
+                //sprite[PLAYER2].dstrect.x = 560;
+                
+            }
+            
+            if(!point){
+                
+                
+                hit_net(sprites);
+                hit_ball(sprites);
+                apply_gravity(sprites);
+                apply_delta(sprites);
+                animate_players(sprites);
+                animate_ball(&sprites[BALL]);
+                upadate_point(points,score);
+                render(renderer, sprites,bg_texture,points);
+                
+            }
+            if (ENDTURN && SDL_TICKS_PASSED(SDL_GetTicks(), timeout))
+            {
+                
+                SDL_Log("Player %i: %i -- Player %i: %i\n", PLAYER1, score[PLAYER1], PLAYER2, score[PLAYER2]);
+                place_sprites_on_start(sprites, score[BALL]);
+                ENDTURN = 0;
+            }
+            if(score[1]==2||score[2]==2) break;
+            SDL_DestroyTexture(bg_texture);
+        }
+        bool play;
+        std::cin>>play;
+        if(!play) break;
     }
-      
-      if(!point){
-          
-          
-          hit_net(sprites);
-          hit_ball(sprites);
-          apply_gravity(sprites);
-          apply_delta(sprites);
-          animate_players(sprites);
-          animate_ball(&sprites[BALL]);
-          upadate_point(points,score);
-          render(renderer, sprites,bg_texture,points);
-          
-      }
-    if (ENDTURN && SDL_TICKS_PASSED(SDL_GetTicks(), timeout))
-    {
-        
-      SDL_Log("Player %i: %i -- Player %i: %i\n", PLAYER1, score[PLAYER1], PLAYER2, score[PLAYER2]);
-        place_sprites_on_start(sprites, score[BALL]);
-      ENDTURN = 0;
-    }
-      SDL_DestroyTexture(bg_texture);
-   }
 /* GAME LOOP -->*/
 
   for (int i = BALL; i < NET+1; i++)
