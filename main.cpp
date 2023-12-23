@@ -40,11 +40,11 @@ bool loadMedia()
             printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
         }
     }
-    gMusic = Mix_LoadMUS( "bgm.mp3" );
-    gBall = Mix_LoadWAV( "ball.mp3" );
-    gButton = Mix_LoadWAV( "button.mp3" );
-    gScore = Mix_LoadWAV( "score.mp3" );
-    gJump = Mix_LoadWAV( "jump.mp3" );
+    gMusic = Mix_LoadMUS( "sounds/bgm.mp3" );
+    gBall = Mix_LoadWAV( "sounds/ball.mp3" );
+    gButton = Mix_LoadWAV( "sounds/button.mp3" );
+    gScore = Mix_LoadWAV( "sounds/score.mp3" );
+    gJump = Mix_LoadWAV( "sounds/jump.mp3" );
     return true;
 }
 
@@ -113,7 +113,7 @@ Point load_point(SDL_Renderer *renderer)
     }
 
     // Load the font
-    point.font = TTF_OpenFont("point.ttf", 15);
+    point.font = TTF_OpenFont("ttf/point.ttf", 15);
     if (point.font == NULL) {
         SDL_Log("Failed to load font: %s\n", TTF_GetError());
         exit(1);
@@ -143,21 +143,21 @@ Point load_point(SDL_Renderer *renderer)
 
 void load_sprites(SDL_Renderer *renderer, Sprite *sprite)
 {
-  sprite[PLAYER1] = load_sprite(renderer, "player01.bmp");
-  sprite[PLAYER2] = load_sprite(renderer, "player02.bmp");
+  sprite[PLAYER1] = load_sprite(renderer, "image/player01.bmp");
+  sprite[PLAYER2] = load_sprite(renderer, "image/player02.bmp");
   //sprite[BALL] = load_sprite(renderer, "ball.bmp");
-  sprite[NET] = load_sprite(renderer, "net.bmp");
+  sprite[NET] = load_sprite(renderer, "image/net.bmp");
     int balltype=1;
     //std::cin>>balltype;
     switch (balltype) {
      case 1:
-         sprite[BALL] = load_sprite(renderer, "ball.bmp");
+         sprite[BALL] = load_sprite(renderer, "image/ball.bmp");
          break;
      case 2:
-         sprite[BALL] = load_sprite(renderer, "ball1.bmp");
+         sprite[BALL] = load_sprite(renderer, "image/ball1.bmp");
          break;
      case 3:
-         sprite[BALL] = load_sprite(renderer, "ball2.bmp");
+         sprite[BALL] = load_sprite(renderer, "image/ball2.bmp");
          break;
    }
 
@@ -409,6 +409,7 @@ void hit_ball(Sprite *sprites)
   {
     if (SDL_HasIntersection(&sprites[i].dstrect, &sprites[BALL].dstrect))
     {
+        Mix_PlayChannel( -1, gBall, 0 );
       sprites[BALL].dstrect.y = sprites[i].dstrect.y - sprites[BALL].dstrect.h;
       x_diff = sprites[BALL].dstrect.x - sprites[i].dstrect.x;
       x_ratio = (float) x_diff / 55; /**< 1.0..-1.0 player left positive, player right negative*/
@@ -600,7 +601,7 @@ void show_score(SDL_Renderer *renderer,unsigned int *score,Sprite* sprites)
         SDL_Log("Unable to initialize TTF: %s\n", TTF_GetError());
         exit(1);
     }
-    TTF_Font* font = TTF_OpenFont("show.ttf", 50);
+    TTF_Font* font = TTF_OpenFont("ttf/show.ttf", 50);
     if (font == NULL) {
         SDL_Log("Unable to load font: %s\n", TTF_GetError());
         exit(1);
@@ -645,7 +646,7 @@ void show_score(SDL_Renderer *renderer,unsigned int *score,Sprite* sprites)
 
 SDL_Surface* loadbgsurface(const char* file, SDL_Renderer *renderer)
 {
-    SDL_Surface* bg_surface = IMG_Load("bg/a.png");
+    SDL_Surface* bg_surface = IMG_Load("image/a.png");
         if (bg_surface == NULL) {
             SDL_Log("Unable to load image: %s\n", IMG_GetError());
             exit(1);
@@ -689,7 +690,7 @@ bool again(SDL_Renderer *renderer,bool running){
 }
 void load_again(SDL_Renderer* renderer){
     
-    SDL_Surface* buttonSurface = SDL_LoadBMP("again.bmp");
+    SDL_Surface* buttonSurface = SDL_LoadBMP("image/again.bmp");
     if (buttonSurface == NULL) {
         SDL_Log("Unable to load image! SDL Error: %s\n", SDL_GetError());
         // handle error
@@ -711,7 +712,7 @@ void load_again(SDL_Renderer* renderer){
     SDL_FreeSurface(buttonSurface);
 
 // Create the text texture
-    buttonSurface = SDL_LoadBMP("exit.bmp");
+    buttonSurface = SDL_LoadBMP("image/exit.bmp");
     if (buttonSurface == NULL) {
         SDL_Log("Unable to load image! SDL Error: %s\n", SDL_GetError());
         // handle error
@@ -765,7 +766,7 @@ loadMedia();
   load_sprites(renderer, sprites);
     load_point(renderer,points);
   place_sprites_on_start(sprites, PLAYER1);
-    SDL_Surface* bg_surface=loadbgsurface("a.png", renderer);
+    SDL_Surface* bg_surface=loadbgsurface("image/a.png", renderer);
 
 
     // Main game loop
