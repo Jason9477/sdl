@@ -1,8 +1,6 @@
-//#include <SDL2/SDL.h>
-//#include <SDL2/SDL_image.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_ttf.h>
+#include <SDL.h>
+#include <SDL_image.h>
+#include <SDL_ttf.h>
 #include<iostream>
 const Uint32 ANIMATION_FRAME_TIME = 1000000/25*3;
 const int WINDOW_WIDTH = 640;
@@ -12,6 +10,7 @@ const int FRAME_INIT_Y = 0;
 const int ANIMATION_FRAME_WIDTH = 60;
 const int ANIMATION_FRAME_HEIGHT = 60;
 int ENDTURN = 0;
+int balltype=1;
 
 
 /** Names of sprites
@@ -112,7 +111,7 @@ void load_sprites(SDL_Renderer *renderer, Sprite *sprite)
   sprite[PLAYER2] = load_sprite(renderer, "player02.bmp");
   //sprite[BALL] = load_sprite(renderer, "ball.bmp");
   sprite[NET] = load_sprite(renderer, "net.bmp");
-    int balltype;
+    
     std::cin>>balltype;
     switch (balltype) {
      case 1:
@@ -343,7 +342,7 @@ int bounce_ball(Sprite *ball)
 
   if (ball->dstrect.y <= 0) /*hit CEILING */
   {
-    ball->d.y = ball->d.y * -0.4;
+    ball->d.y = ball->d.y * -0.6;
   }
 
   if (ball->dstrect.x >= WINDOW_WIDTH - ball->dstrect.w) /* hit RIGHT wall */
@@ -449,10 +448,19 @@ void animate_ball(Sprite *ball)
 
 void apply_delta(Sprite *sprites)
 {
+  
   for (int i = BALL; i < PLAYER2+1; i++)
   {
-    sprites[i].dstrect.x += sprites[i].d.x;
-    sprites[i].dstrect.y += sprites[i].d.y;
+  	if (i==BALL)
+  	{
+  	sprites[BALL].dstrect.x += balltype*sprites[BALL].d.x;
+    sprites[BALL].dstrect.y += balltype*sprites[BALL].d.y;	
+	}
+	else
+	{
+	sprites[i].dstrect.x += sprites[i].d.x;
+    sprites[i].dstrect.y += sprites[i].d.y;	
+	}
 
     if (sprites[i].dstrect.x < 0)
     {
