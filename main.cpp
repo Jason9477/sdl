@@ -222,8 +222,9 @@ SDL_bool process_events(unsigned int *is_npc)
       case SDL_QUIT:
         return SDL_TRUE;
         case SDL_MOUSEBUTTONDOWN:
+            
             runagain=1;
-            std::cout<<"lll";
+           // std::cout<<"lll";
             return SDL_FALSE;
             
       case SDL_KEYDOWN:
@@ -657,6 +658,7 @@ SDL_Surface* loadbgsurface(const char* file, SDL_Renderer *renderer)
 }
 bool again(SDL_Renderer *renderer,bool running){
     //SDL_RenderClear(renderer);
+    Mix_PlayChannel(-1, gButton, 0);
     SDL_Rect playAgainButton = { 120, 100, 400, 100 };
     SDL_Rect exitButton = { 220, 300, 200, 100 };
     
