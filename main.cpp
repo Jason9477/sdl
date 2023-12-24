@@ -14,6 +14,7 @@
 #include "opening.hpp"
 #include "Background.hpp"
 #include "Point.hpp"
+#include "Points.hpp"
 const Uint32 ANIMATION_FRAME_TIME = 1000000/25*3;
 const int WINDOW_WIDTH = 640;
 const int WINDOW_HEIGHT = 480;
@@ -522,25 +523,7 @@ void apply_delta(Sprite *sprites)
   }
 }
 
-class Points{
-    public:
-    Points(SDL_Renderer* renderer):apoint(renderer,"ttf/point.ttf"),bpoint(apoint){
-        apoint.set_xpos(10);
-        bpoint.set_xpos(580);
-    }
-    
-    void add_point(int player){
-        if(player==1) ++apoint;
-        else ++bpoint;
-    }
-    void render(SDL_Renderer* renderer){
-        apoint.render(renderer);
-        bpoint.render(renderer);
-    }
-private:
-    Point apoint;
-    Point bpoint;
-};
+
 
 void render(SDL_Renderer *renderer, Sprite *sprites,Points points,Background bg)
 {
