@@ -6,7 +6,6 @@
 //
 
 #include "Point.hpp"
-//#include <SDL2/SDL_ttf.h>
 Point::Point(){};
 Point::Point(SDL_Renderer* renderer,const char* path){
 
