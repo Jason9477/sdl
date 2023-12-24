@@ -14,7 +14,7 @@
 class Points{
     public:
     Points(SDL_Renderer* renderer);
-    
+    void reset();
     void add_point(int player);
     void render(SDL_Renderer* renderer);
     

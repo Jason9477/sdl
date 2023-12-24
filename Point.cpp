@@ -54,5 +54,7 @@ void Point::render(SDL_Renderer* renderer){
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_RenderCopy(renderer, texture, NULL, &text_rect);
 }
-
+void Point::reset(){
+    score=0;
+}
 Point::~Point(){};

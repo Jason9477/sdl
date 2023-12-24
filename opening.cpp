@@ -90,30 +90,32 @@ void Open::start(SDL_Renderer* renderer,Background* bg){
                             break;
                             
                         case SDLK_SPACE:
-                            
+                            if(n==4) quit=1;
                             if(n==0&&k==0)k+=1;
                             else n++;
                             arr[n]=i;
                             
                         
-                            if(n==4) quit=1;
+                            
                             
                             break;
                         case SDLK_RETURN:
+                            if(n==4) quit=1;
                             if(n==0&&k==0)k+=1;
                             else n++;
                                 
                             arr[n]=i;
                         
-                            if(n==4) quit=1;
+                            
                             break;
                         case SDLK_KP_ENTER:
+                            if(n==4) quit=1;
                             if(n==0&&k==0)k+=1;
                             else n++;
                                 
                             arr[n]=i;
                         
-                            if(n==4) quit=1;
+                            
                             break;
                         default:
                             
@@ -219,7 +221,8 @@ void Open::start(SDL_Renderer* renderer,Background* bg){
                     
                     SDL_RenderCopy(renderer, gCurrentTexture, &srcrect, &rect);
                 }
-                else{
+                else if (n==4){
+                    //printf("A");
                     //choose bg
                     text_rect.x = 120;
                     text_rect.y = 40;

@@ -744,7 +744,7 @@ loadMedia();
 
 
 
-    Background bg[4];
+    Background bg[5];
     bg[0]=Background(renderer,"image/volleyball.jpg");
     for(int i=1;i<5;i++){
         char a[50];sprintf(a, "image/%i.png",i);

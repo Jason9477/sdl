@@ -11,7 +11,10 @@
         apoint.set_xpos(10);
         bpoint.set_xpos(580);
     }
-    
+void Points::reset(){
+    apoint.reset();
+    bpoint.reset();
+}
     void Points::add_point(int player){
         if(player==1) ++apoint;
         else ++bpoint;

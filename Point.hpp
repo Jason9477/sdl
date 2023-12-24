@@ -26,6 +26,7 @@ public:
     void render(SDL_Renderer* renderer);
     
     void set_xpos(int );
+    void reset();
 private:
     TTF_Font *font;
     
