@@ -53,6 +53,8 @@ void Open::start(SDL_Renderer* renderer,Background* bg){
     int i=1;
     rect.x=160;rect.y=200;rect.w=320;rect.h=240;
     int n=0;
+    int k=0;
+    
     while( !quit )
         
     {
@@ -88,22 +90,30 @@ void Open::start(SDL_Renderer* renderer,Background* bg){
                             break;
                             
                         case SDLK_SPACE:
-                            printf("aa");
                             
-                            n++;
+                            if(n==0&&k==0)k+=1;
+                            else n++;
+                            arr[n]=i;
+                            
+                        
+                            if(n==4) quit=1;
                             
                             break;
                         case SDLK_RETURN:
+                            if(n==0&&k==0)k+=1;
+                            else n++;
+                                
                             arr[n]=i;
-                            
+                        
                             if(n==4) quit=1;
-                            n++;
                             break;
                         case SDLK_KP_ENTER:
+                            if(n==0&&k==0)k+=1;
+                            else n++;
+                                
                             arr[n]=i;
-                            
+                        
                             if(n==4) quit=1;
-                            n++;
                             break;
                         default:
                             
@@ -116,34 +126,35 @@ void Open::start(SDL_Renderer* renderer,Background* bg){
                 //Apply the current image
                 SDL_RenderClear(renderer);
                 SDL_RenderCopy(renderer, getbgtexture(bg[0]), NULL, NULL);
-                printf("%d",n);
                 if(n==0){
-                    text_rect.x = 120;
-                    text_rect.y = 40;
-                    text_rect.w = 400;
-                    text_rect.h = 150;
-                    SDL_Surface* textsurface = TTF_RenderText_Blended(font, "NTU VOLLEYBALL", color);
-                    SDL_Texture* texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
-                    SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
-                    text_rect.y = 170;
-                    textsurface = IMG_Load("image/start.bmp");
-                    texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
-                    SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
-                    text_rect.x = 0;
-                    text_rect.y = 350;
-                    text_rect.w = 200;
-                    text_rect.h = 50;
-                    textsurface = TTF_RenderText_Blended(font, "B12901050", color);
-                    texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
-                    SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
-                    text_rect.y = 390;
-                    textsurface = TTF_RenderText_Blended(font, "B12901051", color);
-                    texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
-                    SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
-                    text_rect.y = 430;
-                    textsurface = TTF_RenderText_Blended(font, "B12901184", color);
-                    texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
-                    SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
+                    if(k==0){
+                        text_rect.x = 120;
+                        text_rect.y = 40;
+                        text_rect.w = 400;
+                        text_rect.h = 150;
+                        SDL_Surface* textsurface = TTF_RenderText_Blended(font, "NTU VOLLEYBALL", color);
+                        SDL_Texture* texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
+                        SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
+                        text_rect.y = 170;
+                        textsurface = IMG_Load("image/start.bmp");
+                        texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
+                        SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
+                        text_rect.x = 0;
+                        text_rect.y = 350;
+                        text_rect.w = 200;
+                        text_rect.h = 50;
+                        textsurface = TTF_RenderText_Blended(font, "B12901050", color);
+                        texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
+                        SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
+                        text_rect.y = 390;
+                        textsurface = TTF_RenderText_Blended(font, "B12901051", color);
+                        texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
+                        SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
+                        text_rect.y = 430;
+                        textsurface = TTF_RenderText_Blended(font, "B12901184", color);
+                        texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
+                        SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
+                    }
                 }
                 else if(n==1){
                     //player 1 choose
@@ -151,8 +162,9 @@ void Open::start(SDL_Renderer* renderer,Background* bg){
                     text_rect.y = 40;
                     text_rect.w = 300;
                     text_rect.h = 100;
-                    SDL_Surface* textsurface = TTF_RenderText_Blended(font, "Choose PLAYER1", color);
-                    SDL_Texture* texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
+                    
+                     SDL_Surface *textsurface = TTF_RenderText_Blended(font, "Choose PLAYER1", color);
+                     SDL_Texture *texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
                     SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
                     char a[50];
                     sprintf(a,"image/player1%d.bmp",i);
@@ -165,12 +177,21 @@ void Open::start(SDL_Renderer* renderer,Background* bg){
                 else if(n==2){
                     //player 2 vhoose
                     //n=2;
+                    
+                    
+                    
                     text_rect.x = 120;
                     text_rect.y = 40;
                     text_rect.w = 300;
                     text_rect.h = 100;
-                    SDL_Surface* textsurface = TTF_RenderText_Blended(font, "Choose PLAYER2", color);
-                    SDL_Texture* texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
+                    
+                    
+                    
+                     SDL_Surface* textsurface = TTF_RenderText_Blended(font, "Choose PLAYER2", color);
+                    
+                    
+                    
+                    SDL_Texture * texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
                     SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
                     char a[50];
                     sprintf(a,"image/player2%d.bmp",i);
@@ -219,6 +240,40 @@ void Open::start(SDL_Renderer* renderer,Background* bg){
                     text_rect.h = 70;
                     SDL_Surface* textsurface = TTF_RenderText_Blended(font, "LEFT and RIGHT to pick    ENTER to select", color);
                     SDL_Texture* texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
+                    SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
+                }
+                if(n==0&&k==1){
+                    text_rect.x = 100;
+                    text_rect.y = 40;
+                    text_rect.w = 400;
+                    text_rect.h = 150;
+                    
+                    
+                SDL_Surface* textsurface = TTF_RenderText_Blended(font, "POTION", color);
+                SDL_Texture* texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
+                SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
+                char a[50]="image/greenliquid.bmp";
+                gCurrentSurface=IMG_Load(a);
+                gCurrentTexture = SDL_CreateTextureFromSurface(renderer, gCurrentSurface);
+                SDL_Rect liquidrect = {20, 200, 100, 100};
+                SDL_RenderCopy(renderer, gCurrentTexture, &srcrect, &liquidrect);
+                    sprintf(a,"image/purpleliquid.bmp");
+                    gCurrentSurface=IMG_Load(a);
+                    gCurrentTexture = SDL_CreateTextureFromSurface(renderer, gCurrentSurface);
+                    liquidrect = {20, 350, 100, 100};
+                    SDL_RenderCopy(renderer, gCurrentTexture, &srcrect, &liquidrect);
+                    text_rect.x = 150;
+                    text_rect.y = 200;
+                    text_rect.w = 400;
+                    text_rect.h = 80;
+                    textsurface = TTF_RenderText_Blended(font, "make apponent slow", color);
+                    texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
+                    SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
+                    text_rect.x = 150;
+                    text_rect.y = 350;
+
+                    textsurface = TTF_RenderText_Blended(font, "speed up movement", color);
+                    texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
                     SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
                 }
                 

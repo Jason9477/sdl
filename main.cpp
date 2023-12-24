@@ -33,6 +33,7 @@ bool game_finish=0;
 //The sound effects that will be used
 Mix_Music *gMusic=NULL;
 Mix_Music *gWin=NULL;
+Mix_Music *gMain=NULL;
 Mix_Chunk* gButton = NULL;
 Mix_Chunk* gBall = NULL;
 Mix_Chunk* gScore = NULL;
@@ -51,6 +52,7 @@ bool loadMedia()
     }
     gWin = Mix_LoadMUS( "sounds/Win.mp3" );
     gMusic = Mix_LoadMUS( "sounds/bgm.mp3" );
+    gMain = Mix_LoadMUS( "sounds/main.mp3" );
     gBall = Mix_LoadWAV( "sounds/ball.mp3" );
     gButton = Mix_LoadWAV( "sounds/button.mp3" );
     gScore = Mix_LoadWAV( "sounds/score.mp3" );
@@ -117,10 +119,8 @@ void load_sprites(SDL_Renderer *renderer, Sprite *sprite,Open open)
   sprite[PLAYER1] = load_sprite(renderer, a);
     sprintf(a,"image/player2%d.bmp",open.arr[2]);
   sprite[PLAYER2] = load_sprite(renderer, a);
-  //sprite[BALL] = load_sprite(renderer, "ball.bmp");
   sprite[NET] = load_sprite(renderer, "image/net.bmp");
     int balltype=open.arr[3];
-    //std::cin>>balltype;
     sprintf(a,"image/ball%d.bmp",balltype);
 
          sprite[BALL] = load_sprite(renderer, a);
@@ -624,9 +624,6 @@ void load_again(SDL_Renderer* renderer){
 
   SDL_Rect playAgainButton = { 120, 100, 400, 100 };
   SDL_Rect exitButton = { 220, 300, 200, 100 };
-    //SDL_Rect exitButton = { 100, 200, 200, 50 };
-      //SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
- //SDL_RenderFillRect(renderer, &playAgainButton);
  SDL_RenderCopy(renderer, textTexture, NULL, &playAgainButton);
     SDL_FreeSurface(buttonSurface);
 
@@ -777,8 +774,9 @@ loadMedia();
 
     while(running){
         Open open;
+        Mix_PlayMusic( gMain, -1 );
         open.start(renderer,bg);
-        
+        Mix_HaltMusic();
         load_sprites(renderer, sprites,open);
          
         place_sprites_on_start(sprites, PLAYER1);
@@ -795,8 +793,6 @@ loadMedia();
         {
           
             if(score[1]==1||score[2]==5) {
-                
-                // std::cout<<running;
                 times++;
                 if(times==1){
                     Mix_HaltMusic();
@@ -885,12 +881,14 @@ loadMedia();
     Mix_FreeChunk( gJump );
     Mix_FreeMusic( gMusic );
     Mix_FreeMusic( gWin );
+    Mix_FreeMusic( gMain );
     gMusic = NULL;
     gBall = NULL;
     gButton = NULL;
     gScore = NULL;
     gJump = NULL;
     gWin=NULL;
+    gMain=NULL;
     Mix_Quit();
     
   SDL_DestroyRenderer(renderer);
