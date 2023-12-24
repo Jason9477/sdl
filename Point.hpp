@@ -8,8 +8,9 @@
 #ifndef POINT_HPP
 #define POINT_HPP
 #include <SDL2/SDL_ttf.h>
+//#include <SDL_ttf.h>
 #include "Background.hpp"
-//#include <SDL.h>
+
 
 //#include <SDL_image.h>
 class Point: public Background{
