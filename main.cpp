@@ -792,7 +792,7 @@ loadMedia();
         while(!process_events(&is_npc))
         {
           
-            if(score[1]==1||score[2]==5) {
+            if(score[1]==5||score[2]==5) {
                 times++;
                 if(times==1){
                     Mix_HaltMusic();
