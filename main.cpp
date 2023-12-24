@@ -1,7 +1,17 @@
+//#include <SDL2/SDL.h>
+//#include <SDL2/SDL_image.h>
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
+#include <SDL_mixer.h>
+#include <stdio.h>
+#include <string>
+#include <iostream>
 #include<iostream>
+#include <cstring>
+#include "opening.hpp"
+#include "Background.hpp"
+#include "Tool.hpp"
 const Uint32 ANIMATION_FRAME_TIME = 1000000/25*3;
 const int WINDOW_WIDTH = 640;
 const int WINDOW_HEIGHT = 480;
@@ -11,6 +21,36 @@ const int ANIMATION_FRAME_WIDTH = 60;
 const int ANIMATION_FRAME_HEIGHT = 60;
 int ENDTURN = 0;
 int balltype=1;
+bool runagain=0;
+bool game_finish=0;
+
+
+
+//The sound effects that will be used
+Mix_Music *gMusic=NULL;
+Mix_Chunk* gButton = NULL;
+Mix_Chunk* gBall = NULL;
+Mix_Chunk* gScore = NULL;
+Mix_Chunk* gJump = NULL;
+//Mix_Chunk* gMusic = NULL;
+
+
+bool loadMedia()
+{
+    if(Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG) == 0) {
+        printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+    } else {
+        if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+            printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+        }
+    }
+    gMusic = Mix_LoadMUS( "sounds/bgm.mp3" );
+    gBall = Mix_LoadWAV( "sounds/ball.mp3" );
+    gButton = Mix_LoadWAV( "sounds/button.mp3" );
+    gScore = Mix_LoadWAV( "sounds/score.mp3" );
+    gJump = Mix_LoadWAV( "sounds/jump.mp3" );
+    return true;
+}
 
 
 /** Names of sprites
@@ -77,7 +117,7 @@ Point load_point(SDL_Renderer *renderer)
     }
 
     // Load the font
-    point.font = TTF_OpenFont("point.ttf", 15);
+    point.font = TTF_OpenFont("ttf/point.ttf", 15);
     if (point.font == NULL) {
         SDL_Log("Failed to load font: %s\n", TTF_GetError());
         exit(1);
@@ -104,24 +144,23 @@ Point load_point(SDL_Renderer *renderer)
 }
 
 
-
 void load_sprites(SDL_Renderer *renderer, Sprite *sprite)
 {
-  sprite[PLAYER1] = load_sprite(renderer, "player01.bmp");
-  sprite[PLAYER2] = load_sprite(renderer, "player02.bmp");
+  sprite[PLAYER1] = load_sprite(renderer, "image/player01.bmp");
+  sprite[PLAYER2] = load_sprite(renderer, "image/player02.bmp");
   //sprite[BALL] = load_sprite(renderer, "ball.bmp");
-  sprite[NET] = load_sprite(renderer, "net.bmp");
-    
-    std::cin>>balltype;
+  sprite[NET] = load_sprite(renderer, "image/net.bmp");
+    int balltype=1;
+    //std::cin>>balltype;
     switch (balltype) {
      case 1:
-         sprite[BALL] = load_sprite(renderer, "ball.bmp");
+         sprite[BALL] = load_sprite(renderer, "image/ball.bmp");
          break;
      case 2:
-         sprite[BALL] = load_sprite(renderer, "ball1.bmp");
+         sprite[BALL] = load_sprite(renderer, "image/ball1.bmp");
          break;
      case 3:
-         sprite[BALL] = load_sprite(renderer, "ball2.bmp");
+         sprite[BALL] = load_sprite(renderer, "image/ball2.bmp");
          break;
    }
 
@@ -185,7 +224,12 @@ SDL_bool process_events(unsigned int *is_npc)
 
       case SDL_QUIT:
         return SDL_TRUE;
-
+        case SDL_MOUSEBUTTONDOWN:
+            
+            runagain=1;
+           // std::cout<<"lll";
+            return SDL_FALSE;
+            
       case SDL_KEYDOWN:
         if (event.key.keysym.sym == SDLK_F1)
         {
@@ -208,7 +252,7 @@ SDL_bool process_events(unsigned int *is_npc)
 void control_player(Sprite *sprites)
 {
   const int step = 5;
-  const int jump = 13;
+  const int jump = 16;
   const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
 
   /* PLAYER 1 */
@@ -227,6 +271,7 @@ void control_player(Sprite *sprites)
 
   if (keyboard_state[SDL_SCANCODE_W])
   {
+      Mix_PlayChannel( -1, gJump, 0 );
     if (sprites[PLAYER1].dstrect.y == WINDOW_HEIGHT - ANIMATION_FRAME_HEIGHT) /* IS standing on the ground */
     {
       sprites[PLAYER1].d.y -= jump;
@@ -249,6 +294,7 @@ void control_player(Sprite *sprites)
 
   if (keyboard_state[SDL_SCANCODE_UP])
   {
+      Mix_PlayChannel( -1, gJump, 0 );
     if (sprites[PLAYER2].dstrect.y == WINDOW_HEIGHT - ANIMATION_FRAME_HEIGHT) /* IS standing on the ground */
     {
       sprites[PLAYER2].d.y-=jump;
@@ -366,6 +412,7 @@ void hit_ball(Sprite *sprites)
   {
     if (SDL_HasIntersection(&sprites[i].dstrect, &sprites[BALL].dstrect))
     {
+        Mix_PlayChannel( -1, gBall, 0 );
       sprites[BALL].dstrect.y = sprites[i].dstrect.y - sprites[BALL].dstrect.h;
       x_diff = sprites[BALL].dstrect.x - sprites[i].dstrect.x;
       x_ratio = (float) x_diff / 55; /**< 1.0..-1.0 player left positive, player right negative*/
@@ -389,7 +436,8 @@ void hit_net(Sprite *sprites)
 {
 if (SDL_HasIntersection(&sprites[BALL].dstrect, &sprites[NET].dstrect))
   {
-      std::cout<<"a";
+      //std::cout<<"a";
+      
     if (sprites[BALL].dstrect.x < sprites[NET].dstrect.x)
     {
       sprites[BALL].dstrect.x = sprites[NET].dstrect.x - sprites[BALL].dstrect.w;
@@ -446,21 +494,17 @@ void animate_ball(Sprite *ball)
   }
 }
 
-void apply_delta(Sprite *sprites)
+void apply_delta(Sprite *sprites,Tool * green,ToolB * purple)
 {
-  
+    sprites[BALL].dstrect.x += balltype*sprites[BALL].d.x;
+	sprites[BALL].dstrect.y += balltype*sprites[BALL].d.y;
+  	sprites[PLAYER1].dstrect.x += green->effect1*purple->effect1*sprites[PLAYER1].d.x;
+    sprites[PLAYER1].dstrect.y += green->effect1*purple->effect1*sprites[PLAYER1].d.y;
+	sprites[PLAYER2].dstrect.x += green->effect2*purple->effect2*sprites[PLAYER2].d.x;
+    sprites[PLAYER2].dstrect.y += green->effect2*purple->effect2*sprites[PLAYER2].d.y;
   for (int i = BALL; i < PLAYER2+1; i++)
   {
-  	if (i==BALL)
-  	{
-  	sprites[BALL].dstrect.x += balltype*sprites[BALL].d.x;
-    sprites[BALL].dstrect.y += balltype*sprites[BALL].d.y;	
-	}
-	else
-	{
-	sprites[i].dstrect.x += sprites[i].d.x;
-    sprites[i].dstrect.y += sprites[i].d.y;	
-	}
+
 
     if (sprites[i].dstrect.x < 0)
     {
@@ -507,7 +551,7 @@ void upadate_point(Point *points,unsigned int *score){
     
 }
 
-void render(SDL_Renderer *renderer, Sprite *sprites,SDL_Texture * bg_texture,Point *points)
+void render(SDL_Renderer *renderer, Sprite *sprites,Point *points,Background bg, Tool green,Tool purple)
 {
   const SDL_Point *center = NULL;
   const SDL_RendererFlip flip = SDL_FLIP_NONE;
@@ -515,11 +559,14 @@ void render(SDL_Renderer *renderer, Sprite *sprites,SDL_Texture * bg_texture,Poi
         // Render the background
     SDL_RenderClear(renderer);
     
-        SDL_RenderCopy(renderer, bg_texture, NULL, NULL);
+     //   SDL_RenderCopy(renderer, bg_texture, NULL, NULL);
         //SDL_DestroyTexture(bg_texture);
         
-
-
+	
+	
+    bg.render(renderer);
+	purple.settool(renderer);
+    green.settool(renderer);
   for (int i = BALL; i < NET+1; i++)
   {
 
@@ -557,7 +604,7 @@ void show_score(SDL_Renderer *renderer,unsigned int *score,Sprite* sprites)
         SDL_Log("Unable to initialize TTF: %s\n", TTF_GetError());
         exit(1);
     }
-    TTF_Font* font = TTF_OpenFont("show.ttf", 50);
+    TTF_Font* font = TTF_OpenFont("ttf/show.ttf", 50);
     if (font == NULL) {
         SDL_Log("Unable to load font: %s\n", TTF_GetError());
         exit(1);
@@ -602,7 +649,7 @@ void show_score(SDL_Renderer *renderer,unsigned int *score,Sprite* sprites)
 
 SDL_Surface* loadbgsurface(const char* file, SDL_Renderer *renderer)
 {
-    SDL_Surface* bg_surface = IMG_Load("bg/a.png");
+    SDL_Surface* bg_surface = IMG_Load(file);
         if (bg_surface == NULL) {
             SDL_Log("Unable to load image: %s\n", IMG_GetError());
             exit(1);
@@ -613,39 +660,140 @@ SDL_Surface* loadbgsurface(const char* file, SDL_Renderer *renderer)
    // SDL_FreeSurface(bg_surface);
     return bg_surface;
 }
-class Tool : public Sprite{
-	private:
-		int player;
-	public: 
-	
-	void settool(SDL_Renderer*);
-	bool playergot(int p);
-	void effect();
-	SDL_Texture* texture;  
-    Tool() : texture(NULL) , player(0){}		
-};
-void Tool::settool(SDL_Renderer* renderer){
-	SDL_Surface* imageSurface = SDL_LoadBMP("greenliquid.bmp");
-	SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageSurface);
-	SDL_Rect destinationRect = {WINDOW_WIDTH/2-20, 400, imageSurface->w, imageSurface->h};
-	//SDL_RenderClear(renderer);
+bool again(SDL_Renderer *renderer,bool running){
+    //SDL_RenderClear(renderer);
+    Mix_PlayChannel(-1, gButton, 0);
+    SDL_Rect playAgainButton = { 120, 100, 400, 100 };
+    SDL_Rect exitButton = { 220, 300, 200, 100 };
+    
+    // Main game loop
+    
+   
+                int x, y;
+                SDL_GetMouseState(&x, &y);
+    
+        // Check if the Play Again button was clicked
+        if (x >= playAgainButton.x && x <= playAgainButton.x + playAgainButton.w &&
+            y >= playAgainButton.y && y <= playAgainButton.y + playAgainButton.h) {
+            // Restart the game
+            return 1;
+        }
+        
+        // Check if the Exit button was clicked
+        else if (x >= exitButton.x && x <= exitButton.x + exitButton.w &&
+                 y >= exitButton.y && y <= exitButton.y + exitButton.h) {
+            return 0;
+            
+        }
+    
+                
+    
 
-    SDL_RenderCopy(renderer, texture, NULL, &destinationRect);
+    return 0;
+}
+void load_again(SDL_Renderer* renderer){
+    
+    SDL_Surface* buttonSurface = SDL_LoadBMP("image/again.bmp");
+    if (buttonSurface == NULL) {
+        SDL_Log("Unable to load image! SDL Error: %s\n", SDL_GetError());
+        // handle error
+    }
+    
+  // Load the font
 
-    // Present the renderer
-    SDL_DestroyTexture(texture);
-    SDL_FreeSurface(imageSurface);
-    SDL_RenderPresent(renderer);
+
+  SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, buttonSurface);
+
+// Free the surface
+
+  SDL_Rect playAgainButton = { 120, 100, 400, 100 };
+  SDL_Rect exitButton = { 220, 300, 200, 100 };
+    //SDL_Rect exitButton = { 100, 200, 200, 50 };
+      //SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
+ //SDL_RenderFillRect(renderer, &playAgainButton);
+ SDL_RenderCopy(renderer, textTexture, NULL, &playAgainButton);
+    SDL_FreeSurface(buttonSurface);
+
+// Create the text texture
+    buttonSurface = SDL_LoadBMP("image/exit.bmp");
+    if (buttonSurface == NULL) {
+        SDL_Log("Unable to load image! SDL Error: %s\n", SDL_GetError());
+        // handle error
+    }
+textTexture = SDL_CreateTextureFromSurface(renderer, buttonSurface);
+
+// Free the surface
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  //SDL_RenderDrawRect(renderer, &exitButton);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderCopy(renderer, textTexture, NULL, &exitButton);
+    SDL_DestroyTexture(textTexture);
+
 }
-bool Tool::playergot(int p){
-	player=p;
-	return 0;
+void win(SDL_Renderer* renderer,int player){
+  SDL_Surface* buttonSurface = NULL;
+    SDL_RenderClear(renderer);
+  if(player==1){
+    buttonSurface = SDL_LoadBMP("image/win1.bmp");
+  }
+  else{
+    buttonSurface = SDL_LoadBMP("image/win2.bmp");
+  }
+
+  if (buttonSurface == NULL) {
+    SDL_Log("Unable to load image! SDL Error: %s\n", SDL_GetError());
+    // handle error
+  } else {
+    // Create a texture from the surface
+    SDL_Texture* buttonTexture = SDL_CreateTextureFromSurface(renderer, buttonSurface);
+    if (buttonTexture == NULL) {
+      SDL_Log("Unable to create texture! SDL Error: %s\n", SDL_GetError());
+      // handle error
+    } else {
+      // Render the texture
+      SDL_RenderCopy(renderer, buttonTexture, NULL, NULL);
+      SDL_RenderPresent(renderer);
+    }
+      //SDL_Delay(5000);
+    // Clean up
+    SDL_FreeSurface(buttonSurface);
+    SDL_DestroyTexture(buttonTexture);
+  }
 }
-void Tool:effect(){
+void player_gotG(Sprite *sprites,Tool* green){
+	if(green->exist==1){
 	
+	if(abs(sprites[PLAYER1].dstrect.x-290)<40){
+		green->exist=0;
+		green->player=1;
+		green->effect2=0.5;
+	}
+	else if(abs(sprites[PLAYER2].dstrect.x-290)<40){
+		green->exist=0;
+		green->player=2;
+		green->effect1=0.5;
+	}
+	}	
+}
+void player_gotP(Sprite *sprites,ToolB* purple){
+	if(purple->exist==1){
+	
+	if(abs(sprites[PLAYER1].dstrect.x-purple->x)<20&&abs(sprites[PLAYER1].dstrect.y-purple->y)<20){
+		purple->exist=0;
+		purple->player=1;
+		purple->effect1=2;
+	}
+	else if(abs(sprites[PLAYER2].dstrect.x-purple->x)<20&&abs(sprites[PLAYER2].dstrect.y-purple->y)<20){
+		purple->exist=0;
+		purple->player=2;
+		purple->effect2=2;
+	}
+	}	
 }
 int main(int argc, char **argv)
 {
+loadMedia();
     
   SDL_Window *window = NULL;
   SDL_Renderer *renderer = NULL;
@@ -654,6 +802,8 @@ int main(int argc, char **argv)
   unsigned int is_npc = 0;
   Point points[3];
 
+
+    
 
   score[BALL] = 0; /**< last player who scored */
   score[PLAYER1] = 0;
@@ -664,7 +814,7 @@ int main(int argc, char **argv)
   SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
 
   window = SDL_CreateWindow(
-    "Arcade Volleybal",
+    "NTU Volleyball",
     SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED,
     WINDOW_WIDTH,
@@ -681,84 +831,143 @@ int main(int argc, char **argv)
   load_sprites(renderer, sprites);
     load_point(renderer,points);
   place_sprites_on_start(sprites, PLAYER1);
-    SDL_Surface* bg_surface=loadbgsurface("a.png", renderer);
-    //SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
-   // SDL_FreeSurface(bg_surface);
-    //SDL_DestroyTexture(bg_texture);
-    
-	Tool green;
+    Background bg[4];
+    bg[0]=Background(renderer,"image/volleyball.jpg");
+    for(int i=1;i<4;i++){
+        char a[50];sprintf(a, "image/%i.png",i);
+        bg[i]=Background(renderer,a);}
+
+    //SDL_Surface* bg_surface=loadbgsurface("image/d.png", renderer);
+
+
+    // Main game loop
+    bool running=1;
 /* <-- GAME LOOP */
-    while(1){
+    //Mix_PlayMusic( gMusic, -1 );
+    Tool green;
+    ToolB purple;
+    purple.exist=0;
+    //Uint32 startTime = SDL_GetTicks();
+    green.exist=0;
+    while(running){
+        Mix_PlayMusic( gMusic, -1 );
+        runagain=0;
+        for(int i=PLAYER1;i<PLAYER2+1;i++) score[i]=0;
         int point = 0;
         Uint32 timeout = 0;
-        int tool=1;
+        int times=0;
+
+
+        
         while(!process_events(&is_npc))
         {
-            SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
-            
-            if(!ENDTURN){
-                control_player(sprites);
-                control_oponent(sprites, is_npc);
-                point = bounce_ball(&sprites[BALL]);
+          	
+            if(score[1]==1||score[2]==5) {
+                Mix_HaltMusic();
+               // std::cout<<running;
+                times++;
+                if(times<=200){
+                    win(renderer,score[BALL]);}
                 
+                else{
+                    SDL_RenderClear(renderer);
+                    bg[0].render(renderer);
+                    
+                    load_again(renderer);
+                    
+                    SDL_RenderPresent(renderer);
+                    
+                    if(runagain==1){ running=again(renderer,running); break;}
+                }
             }
-            if (point && !ENDTURN)
-            {
-                score[point] += 1;
-                score[BALL] = point;
-                ENDTURN = 1;
-                show_score(renderer,score,sprites);
+            else{
+                //SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
                 
-                timeout = SDL_GetTicks() + 3000;
-                //sprite[PLAYER1].dstrect.x = 20;
-                //sprite[PLAYER2].dstrect.x = 560;
+                if(!ENDTURN){
+                    control_player(sprites);
+                    control_oponent(sprites, is_npc);
+                    point = bounce_ball(&sprites[BALL]);
+                    
+                }
+                if (point && !ENDTURN)
+                {
+                    //Mix_HaltMusic();
+                    Mix_PlayChannel( -1, gScore, 0 );
+                    score[point] += 1;
+                    score[BALL] = point;
+                    ENDTURN = 1;
+                    show_score(renderer,score,sprites);
+                    timeout = SDL_GetTicks() + 3000;
+                    //sprite[PLAYER1].dstrect.x = 20;
+                    //sprite[PLAYER2].dstrect.x = 560;
+                    
+                }
                 
+                if(!point){
+                    
+                    //Mix_PlayMusic( gMusic, -1 );
+                    hit_net(sprites);
+                    hit_ball(sprites);
+                    apply_gravity(sprites);
+                    apply_delta(sprites,&green,&purple);
+                    animate_players(sprites);
+                    animate_ball(&sprites[BALL]);
+                    upadate_point(points,score);
+                    
+                    
+                    
+					Uint32 currentTime = SDL_GetTicks();
+        			if((currentTime%543==0)&&(purple.player==0)) purple.exist=1;
+        			if((currentTime%987==0)&&(green.player==0)) green.exist=1;
+                    player_gotG(sprites,&green);
+                    player_gotP(sprites,&purple);
+                    
+                    
+                    //bg[0].render(renderer);
+                   // printf("aaa");
+                   	
+                    render(renderer, sprites,points,bg[1],green,purple);
+
+                }
+                if (ENDTURN && SDL_TICKS_PASSED(SDL_GetTicks(), timeout))
+                {
+                    
+                    SDL_Log("Player %i: %i -- Player %i: %i\n", PLAYER1, score[PLAYER1], PLAYER2, score[PLAYER2]);
+                    place_sprites_on_start(sprites, score[BALL]);
+                    green.tool_reset();
+                    purple.rand_xy();
+                    purple.tool_reset();
+					ENDTURN = 0;
+                }
+                
+                //SDL_DestroyTexture(bg_texture);
             }
-            
-            if(!point){
-                
-                
-                hit_net(sprites);
-                hit_ball(sprites);
-                apply_gravity(sprites);
-                apply_delta(sprites);
-                animate_players(sprites);
-                animate_ball(&sprites[BALL]);
-				upadate_point(points,score);
-                render(renderer, sprites,bg_texture,points);
-				
-				
-				if(sprites[PLAYER1].dstrect.x>=255) tool=green.playergot(1);
-				else if(sprites[PLAYER2].dstrect.x<=315) tool=green.playergot(2);
-				
-				if(tool==1) green.settool(renderer);
-				
-				
-                
-                
-            }
-            if (ENDTURN && SDL_TICKS_PASSED(SDL_GetTicks(), timeout))
-            {
-                tool=1;
-                SDL_Log("Player %i: %i -- Player %i: %i\n", PLAYER1, score[PLAYER1], PLAYER2, score[PLAYER2]);
-                place_sprites_on_start(sprites, score[BALL]);
-                ENDTURN = 0;
-            }
-            
-            	
-            SDL_DestroyTexture(bg_texture);
         }
-        bool play;
-        std::cin>>play;
-        if(!play) break;
+        
+        
+        //SDL_Delay(5000);
     }
 /* GAME LOOP -->*/
 
+    for(int i=0;i<5;i++) bg[i].destruct();
   for (int i = BALL; i < NET+1; i++)
   {
     SDL_DestroyTexture(sprites[i].texture);
   }
-    SDL_FreeSurface(bg_surface);
+    //SDL_FreeSurface(bg_surface);
+    
+    //Free the sound effects
+    Mix_FreeChunk( gBall );
+    Mix_FreeChunk( gButton );
+    Mix_FreeChunk( gScore );
+    Mix_FreeChunk( gJump );
+    Mix_FreeMusic( gMusic );
+    gMusic = NULL;
+    gBall = NULL;
+    gButton = NULL;
+    gScore = NULL;
+    gJump = NULL;
+    Mix_Quit();
     
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
