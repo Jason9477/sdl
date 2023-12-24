@@ -13,14 +13,14 @@ public:
    	void settool(SDL_Renderer*);
     //void playergot(int);
     void tool_reset();
-	SDL_Surface* imageSurface;
-    SDL_Texture* texture;
+	
     ~Tool();
     int x;
 	int y;
 protected:
 
-    
+    SDL_Surface* imageSurface;
+    SDL_Texture* texture;
 private:
 
 	int got_times;

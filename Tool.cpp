@@ -20,7 +20,7 @@ void Tool::tool_reset(){
 void Tool::settool(SDL_Renderer* renderer){
 	if(exist==1)
 	{
-        printf("aaaaa");
+       // printf("aaaaa");
 	texture = SDL_CreateTextureFromSurface(renderer, imageSurface);
     SDL_Rect destinationRect = {x,y, imageSurface->w, imageSurface->h};
     SDL_RenderCopy(renderer, texture, NULL, &destinationRect);
