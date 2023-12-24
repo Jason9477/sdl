@@ -4,7 +4,7 @@
 //
 //  Created by Jason Hsieh on 2023/12/23.
 //
-
+#include <stdio.h>
 #include "Point.hpp"
 Point::Point(){};
 Point::Point(SDL_Renderer* renderer,const char* path){
