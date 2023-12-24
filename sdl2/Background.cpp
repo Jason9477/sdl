@@ -28,4 +28,5 @@ void Background::render(SDL_Renderer* renderer){
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     //SDL_RenderPresent(renderer);
 }
+SDL_Texture* getbgtexture(Background& e){ return e.texture;}
 

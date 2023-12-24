@@ -14,6 +14,7 @@
 #include "opening.hpp"
 #include "Background.hpp"
 #include "Point.hpp"
+//#include "Tool.hpp"
 #include "Points.hpp"
 const Uint32 ANIMATION_FRAME_TIME = 1000000/25*3;
 const int WINDOW_WIDTH = 640;
@@ -106,36 +107,24 @@ Sprite load_sprite(SDL_Renderer *renderer, const char *filename)
   return sprite;
 }
 
-class Tool : public Sprite{
-    private:
-        int player;
-    public:
-    void settool(SDL_Renderer*);
-    bool playergot(int p);
-    SDL_Texture* texture;
-    Tool() : texture(NULL) , player(0){}
-};
 
 
-void load_sprites(SDL_Renderer *renderer, Sprite *sprite)
+
+void load_sprites(SDL_Renderer *renderer, Sprite *sprite,Open open)
 {
-  sprite[PLAYER1] = load_sprite(renderer, "image/player01.bmp");
-  sprite[PLAYER2] = load_sprite(renderer, "image/player02.bmp");
+    char a[50];
+    sprintf(a,"image/player1%d.bmp",open.arr[1]);
+  sprite[PLAYER1] = load_sprite(renderer, a);
+    sprintf(a,"image/player2%d.bmp",open.arr[2]);
+  sprite[PLAYER2] = load_sprite(renderer, a);
   //sprite[BALL] = load_sprite(renderer, "ball.bmp");
   sprite[NET] = load_sprite(renderer, "image/net.bmp");
-    int balltype=1;
+    int balltype=open.arr[3];
     //std::cin>>balltype;
-    switch (balltype) {
-     case 1:
-         sprite[BALL] = load_sprite(renderer, "image/ball.bmp");
-         break;
-     case 2:
-         sprite[BALL] = load_sprite(renderer, "image/ball1.bmp");
-         break;
-     case 3:
-         sprite[BALL] = load_sprite(renderer, "image/ball2.bmp");
-         break;
-   }
+    sprintf(a,"image/ball%d.bmp",balltype);
+
+         sprite[BALL] = load_sprite(renderer, a);
+
 
   sprite[PLAYER1].dstrect.y = WINDOW_HEIGHT - ANIMATION_FRAME_HEIGHT;
   sprite[PLAYER2].dstrect.y = WINDOW_HEIGHT - ANIMATION_FRAME_HEIGHT;
@@ -150,23 +139,7 @@ void load_sprites(SDL_Renderer *renderer, Sprite *sprite)
   sprite[NET].dstrect.h = sprite[NET].srcrect.h;
 
 }
-void Tool::settool(SDL_Renderer* renderer){
-    SDL_Surface* imageSurface = SDL_LoadBMP("image/greenliquid.bmp");
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, imageSurface);
-    SDL_Rect destinationRect = {WINDOW_WIDTH/2-20, 400, imageSurface->w, imageSurface->h};
-    //SDL_RenderClear(renderer);
 
-    SDL_RenderCopy(renderer, texture, NULL, &destinationRect);
-
-    // Present the renderer
-    SDL_DestroyTexture(texture);
-    SDL_FreeSurface(imageSurface);
-    SDL_RenderPresent(renderer);
-}
-bool Tool::playergot(int p){
-    player=p;
-    return 0;
-}
 void place_sprites_on_start(Sprite *sprite, int delivery)
 {
     sprite[PLAYER1].dstrect.x = 50;
@@ -476,13 +449,19 @@ void animate_ball(Sprite *ball)
 
 void apply_delta(Sprite *sprites)
 {
+    sprites[BALL].dstrect.x += balltype*sprites[BALL].d.x*0.8;
+        sprites[BALL].dstrect.y += balltype*sprites[BALL].d.y*0.8;
+         // sprites[PLAYER1].dstrect.x += green->effect1*purple->effect1*sprites[PLAYER1].d.x;
+        //sprites[PLAYER1].dstrect.y += green->effect1*purple->effect1*sprites[PLAYER1].d.y;
+        //sprites[PLAYER2].dstrect.x += green->effect2*purple->effect2*sprites[PLAYER2].d.x;
+        //sprites[PLAYER2].dstrect.y += green->effect2*purple->effect2*sprites[PLAYER2].d.y;
   for (int i = BALL; i < PLAYER2+1; i++)
   {
 
       if (i==BALL)
             {
-            sprites[BALL].dstrect.x += balltype*sprites[BALL].d.x;
-          sprites[BALL].dstrect.y += balltype*sprites[BALL].d.y;
+           // sprites[BALL].dstrect.x += balltype*sprites[BALL].d.x;
+          //sprites[BALL].dstrect.y += balltype*sprites[BALL].d.y;
           }
           else
           {
@@ -742,20 +721,21 @@ loadMedia();
    SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
 
-  load_sprites(renderer, sprites);
-   
-  place_sprites_on_start(sprites, PLAYER1);
+
     Background bg[4];
     bg[0]=Background(renderer,"image/volleyball.jpg");
-    for(int i=1;i<4;i++){
+    for(int i=1;i<5;i++){
         char a[50];sprintf(a, "image/%i.png",i);
         bg[i]=Background(renderer,a);}
     Points points(renderer);
     //points.construct(renderer);
     
     
-    
-    
+    Open open;
+    open.start(renderer,bg);
+    load_sprites(renderer, sprites,open);
+     
+    place_sprites_on_start(sprites, PLAYER1);
     //SDL_Surface* bg_surface=loadbgsurface("image/d.png", renderer);
 
 
@@ -763,7 +743,14 @@ loadMedia();
     bool running=1;
 /* <-- GAME LOOP */
     //Mix_PlayMusic( gMusic, -1 );
-    Tool green;
+   
+    
+    
+    
+    
+    
+    
+    
     while(running){
         Mix_HaltMusic();
         Mix_PlayMusic( gMusic, -1 );
@@ -773,7 +760,7 @@ loadMedia();
         Uint32 timeout = 0;
         int times=0;
         int tool=1;
-        if(tool==1) green.settool(renderer);
+        
         while(!process_events(&is_npc))
         {
           
@@ -834,10 +821,9 @@ loadMedia();
                     //upadate_point(points,score);
                     //bg[0].render(renderer);
                    // printf("aaa");
-                    render(renderer, sprites,points,bg[1]);
+                    render(renderer, sprites,points,bg[open.arr[4]]);
                     
-                    if(sprites[PLAYER1].dstrect.x>=255) {tool=green.playergot(1);if(tool==1) green.settool(renderer);}
-                    else if(sprites[PLAYER2].dstrect.x<=315){ tool=green.playergot(2);if(tool==1) green.settool(renderer);}
+                    
                     
                    // if(tool==1) green.settool(renderer);
                 }

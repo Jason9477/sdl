@@ -12,6 +12,7 @@ public:
     ~Background();
     void destruct() ;
     void render(SDL_Renderer* renderer) ;
+    friend SDL_Texture* getbgtexture(Background&);
 protected:
    // SDL_Renderer* renderer;
     
