@@ -11,11 +11,11 @@ public:
 	double effect1,effect2;
     Tool();
    	void settool(SDL_Renderer*);
-    void playergot(int);
+    //void playergot(int);
     void tool_reset();
 	SDL_Surface* imageSurface;
     SDL_Texture* texture;
-    ~Tool(); 
+    ~Tool();
     int x;
 	int y;
 protected:
@@ -27,11 +27,13 @@ private:
 	
 };
 
-class ToolB : public Tool{
-	public:
-		ToolB();
-		void rand_xy();
-	private:
-		
-	
-};
+ 
+ class ToolB : public Tool{
+ public:
+ ToolB();
+ void rand_xy();
+ private:
+ 
+ 
+ };
+ 

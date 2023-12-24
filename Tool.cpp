@@ -9,6 +9,7 @@ Tool::Tool(): texture(NULL), player(0), exist(0),effect1(1), effect2(1),x(300),y
     
     //std::cout<<"constructor";
 }
+
 void Tool::tool_reset(){
 	effect1=1;
 	effect2=1;
@@ -19,12 +20,13 @@ void Tool::tool_reset(){
 void Tool::settool(SDL_Renderer* renderer){
 	if(exist==1)
 	{
-	
+        printf("aaaaa");
 	texture = SDL_CreateTextureFromSurface(renderer, imageSurface);
     SDL_Rect destinationRect = {x,y, imageSurface->w, imageSurface->h};
     SDL_RenderCopy(renderer, texture, NULL, &destinationRect);
 	}
 }
+ 
 Tool::~Tool(){}
 
 ToolB::ToolB() {
@@ -36,4 +38,5 @@ ToolB::ToolB() {
 void ToolB::rand_xy(){
 	x=rand() % 641;
     y=200+rand() % 201;	
-} 
+}
+

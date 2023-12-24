@@ -61,6 +61,8 @@ void Open::start(SDL_Renderer* renderer,Background* bg){
             while( SDL_PollEvent( &e ) != 0 )
             {
                 
+                
+                
                 //User requests quit
                 if( e.type == SDL_QUIT )
                 {

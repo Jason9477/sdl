@@ -23,10 +23,9 @@ void Background::destruct() {
 
 
 void Background::render(SDL_Renderer* renderer){
-    
-    //if(bg_texture) printf("AA");
+
     SDL_RenderCopy(renderer, texture, NULL, NULL);
-    //SDL_RenderPresent(renderer);
+
 }
 SDL_Texture* getbgtexture(Background& e){ return e.texture;}
 

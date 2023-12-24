@@ -14,7 +14,7 @@
 #include "opening.hpp"
 #include "Background.hpp"
 #include "Point.hpp"
-//#include "Tool.hpp"
+#include "Tool.hpp"
 #include "Points.hpp"
 const Uint32 ANIMATION_FRAME_TIME = 1000000/25*3;
 const int WINDOW_WIDTH = 640;
@@ -447,27 +447,17 @@ void animate_ball(Sprite *ball)
   }
 }
 
-void apply_delta(Sprite *sprites)
+void apply_delta(Sprite *sprites,Tool * green,ToolB * purple)
 {
     sprites[BALL].dstrect.x += balltype*sprites[BALL].d.x*0.8;
         sprites[BALL].dstrect.y += balltype*sprites[BALL].d.y*0.8;
-         // sprites[PLAYER1].dstrect.x += green->effect1*purple->effect1*sprites[PLAYER1].d.x;
-        //sprites[PLAYER1].dstrect.y += green->effect1*purple->effect1*sprites[PLAYER1].d.y;
-        //sprites[PLAYER2].dstrect.x += green->effect2*purple->effect2*sprites[PLAYER2].d.x;
-        //sprites[PLAYER2].dstrect.y += green->effect2*purple->effect2*sprites[PLAYER2].d.y;
+          sprites[PLAYER1].dstrect.x += green->effect1*purple->effect1*sprites[PLAYER1].d.x;
+        sprites[PLAYER1].dstrect.y += green->effect1*purple->effect1*sprites[PLAYER1].d.y;
+        sprites[PLAYER2].dstrect.x += green->effect2*purple->effect2*sprites[PLAYER2].d.x;
+        sprites[PLAYER2].dstrect.y += green->effect2*purple->effect2*sprites[PLAYER2].d.y;
   for (int i = BALL; i < PLAYER2+1; i++)
   {
 
-      if (i==BALL)
-            {
-           // sprites[BALL].dstrect.x += balltype*sprites[BALL].d.x;
-          //sprites[BALL].dstrect.y += balltype*sprites[BALL].d.y;
-          }
-          else
-          {
-          sprites[i].dstrect.x += sprites[i].d.x;
-          sprites[i].dstrect.y += sprites[i].d.y;
-          }
 
     if (sprites[i].dstrect.x < 0)
     {
@@ -479,12 +469,12 @@ void apply_delta(Sprite *sprites)
       sprites[i].dstrect.x = WINDOW_WIDTH - ANIMATION_FRAME_WIDTH;
     }
 
-    if (sprites[i].dstrect.y >= WINDOW_HEIGHT - ANIMATION_FRAME_HEIGHT) /* IS standing on the ground */
+    if (sprites[i].dstrect.y >= WINDOW_HEIGHT - ANIMATION_FRAME_HEIGHT)
     {
     sprites[i].dstrect.y = WINDOW_HEIGHT - ANIMATION_FRAME_HEIGHT;
     }
 
-    if (sprites[i].dstrect.y < 0) /*hit CEILING */
+    if (sprites[i].dstrect.y < 0)
     {
       sprites[i].dstrect.y = 0;
     }
@@ -504,7 +494,7 @@ void apply_delta(Sprite *sprites)
 
 
 
-void render(SDL_Renderer *renderer, Sprite *sprites,Points points,Background bg)
+void render(SDL_Renderer *renderer, Sprite *sprites,Points points,Background bg,Tool green,ToolB purple)
 {
   const SDL_Point *center = NULL;
   const SDL_RendererFlip flip = SDL_FLIP_NONE;
@@ -513,6 +503,9 @@ void render(SDL_Renderer *renderer, Sprite *sprites,Points points,Background bg)
     SDL_RenderClear(renderer);
 
     bg.render(renderer);
+    purple.settool(renderer);
+        green.settool(renderer);
+    
   for (int i = BALL; i < NET+1; i++)
   {
 
@@ -531,6 +524,7 @@ void render(SDL_Renderer *renderer, Sprite *sprites,Points points,Background bg)
   SDL_RenderPresent(renderer);
     
 }
+ 
 
 void show_score(SDL_Renderer *renderer,unsigned int *score,Sprite* sprites)
 {
@@ -684,6 +678,37 @@ void win(SDL_Renderer* renderer,int player){
   }
 }
 
+void player_gotG(Sprite *sprites,Tool* green){
+    if(green->exist==1){
+    
+    if(abs(sprites[PLAYER1].dstrect.x-290)<40){
+        green->exist=0;
+        green->player=1;
+        green->effect2=0.5;
+    }
+    else if(abs(sprites[PLAYER2].dstrect.x-290)<40){
+        green->exist=0;
+        green->player=2;
+        green->effect1=0.5;
+    }
+    }
+}
+void player_gotP(Sprite *sprites,ToolB* purple){
+    if(purple->exist==1){
+    
+    if(abs(sprites[PLAYER1].dstrect.x-purple->x)<20&&abs(sprites[PLAYER1].dstrect.y-purple->y)<20){
+        purple->exist=0;
+        purple->player=1;
+        purple->effect1=2;
+    }
+    else if(abs(sprites[PLAYER2].dstrect.x-purple->x)<20&&abs(sprites[PLAYER2].dstrect.y-purple->y)<20){
+        purple->exist=0;
+        purple->player=2;
+        purple->effect2=2;
+    }
+    }
+}
+ 
 int main(int argc, char **argv)
 {
 loadMedia();
@@ -731,13 +756,13 @@ loadMedia();
     //points.construct(renderer);
     
     
-    Open open;
-    open.start(renderer,bg);
-    load_sprites(renderer, sprites,open);
+    
+    Tool green;
+    
+        ToolB purple;
+        purple.exist=0;
+        green.exist=0;
      
-    place_sprites_on_start(sprites, PLAYER1);
-    //SDL_Surface* bg_surface=loadbgsurface("image/d.png", renderer);
-
 
     // Main game loop
     bool running=1;
@@ -749,9 +774,14 @@ loadMedia();
     
     
     
-    
-    
+
     while(running){
+        Open open;
+        open.start(renderer,bg);
+        
+        load_sprites(renderer, sprites,open);
+         
+        place_sprites_on_start(sprites, PLAYER1);
         Mix_HaltMusic();
         Mix_PlayMusic( gMusic, -1 );
         runagain=0;
@@ -786,8 +816,6 @@ loadMedia();
                 }
             }
             else{
-                //SDL_Texture* bg_texture = SDL_CreateTextureFromSurface(renderer, bg_surface);
-                
                 if(!ENDTURN){
                     control_player(sprites);
                     control_oponent(sprites, is_npc);
@@ -804,8 +832,6 @@ loadMedia();
                     ENDTURN = 1;
                     show_score(renderer,score,sprites);
                     timeout = SDL_GetTicks() + 3000;
-                    //sprite[PLAYER1].dstrect.x = 20;
-                    //sprite[PLAYER2].dstrect.x = 560;
                     
                 }
                 
@@ -815,32 +841,33 @@ loadMedia();
                     hit_net(sprites);
                     hit_ball(sprites);
                     apply_gravity(sprites);
-                    apply_delta(sprites);
+                    apply_delta(sprites,&green,&purple);
                     animate_players(sprites);
                     animate_ball(&sprites[BALL]);
-                    //upadate_point(points,score);
-                    //bg[0].render(renderer);
-                   // printf("aaa");
-                    render(renderer, sprites,points,bg[open.arr[4]]);
+                    Uint32 currentTime = SDL_GetTicks();
+                    if((currentTime%543==0)&&(purple.player==0)) purple.exist=1;
+                    if((currentTime%987==0)&&(green.player==0)) green.exist=1;
+                    player_gotG(sprites,&green);
+                    player_gotP(sprites,&purple);
+                    render(renderer, sprites,points,bg[open.arr[4]],green,purple);
                     
                     
                     
-                   // if(tool==1) green.settool(renderer);
+                  
                 }
                 if (ENDTURN && SDL_TICKS_PASSED(SDL_GetTicks(), timeout))
                 {
                     tool=1;
                     SDL_Log("Player %i: %i -- Player %i: %i\n", PLAYER1, score[PLAYER1], PLAYER2, score[PLAYER2]);
                     place_sprites_on_start(sprites, score[BALL]);
+                    green.tool_reset();
+                    purple.rand_xy();
+                    purple.tool_reset();
                     ENDTURN = 0;
                 }
-                
-                //SDL_DestroyTexture(bg_texture);
             }
         }
         
-        
-        //SDL_Delay(5000);
     }
 /* GAME LOOP -->*/
 
