@@ -49,6 +49,7 @@ Point& Point::operator++() {
     }
 void Point::set_xpos(int x){
     text_rect.x=x;
+    
 }
 void Point::render(SDL_Renderer* renderer){
     texture = SDL_CreateTextureFromSurface(renderer, surface);
@@ -56,5 +57,7 @@ void Point::render(SDL_Renderer* renderer){
 }
 void Point::reset(){
     score=0;
+    sprintf(score_char,"%d",score);
+    surface = TTF_RenderText_Blended(font, score_char, color);
 }
 Point::~Point(){};

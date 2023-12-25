@@ -6,6 +6,8 @@
 //
 #include <SDL2/sdl.h>
 #include <SDL2/SDL_ttf.h>
+//#include <sdl.h>
+//#include <SDL_ttf.h>
 #include <stdio.h>
 #include "opening.hpp"
 #include "Background.hpp"
@@ -90,10 +92,12 @@ void Open::start(SDL_Renderer* renderer,Background* bg){
                             break;
                             
                         case SDLK_SPACE:
+                            //printf("A");
                             if(n==4) quit=1;
                             if(n==0&&k==0)k+=1;
-                            else n++;
-                            arr[n]=i;
+                            else {
+                            arr[n]=i;n++;}
+                            
                             
                         
                             
@@ -102,22 +106,38 @@ void Open::start(SDL_Renderer* renderer,Background* bg){
                         case SDLK_RETURN:
                             if(n==4) quit=1;
                             if(n==0&&k==0)k+=1;
-                            else n++;
-                                
-                            arr[n]=i;
+                            else {
+                            arr[n]=i;n++;}
+                            
                         
                             
                             break;
                         case SDLK_KP_ENTER:
                             if(n==4) quit=1;
                             if(n==0&&k==0)k+=1;
-                            else n++;
-                                
-                            arr[n]=i;
+                           else {
+                            arr[n]=i;n++;}
+                            
+                        
+                            
+                            break;
+                            case SDLK_KP_SPACE:
+                            if(n==4) quit=1;
+                            if(n==0&&k==0)k+=1;
+                           else {
+                            arr[n]=i;n++;}
+                            
                         
                             
                             break;
                         default:
+                           // if(n==4) quit=1;
+                            //if(n==0&&k==0)k+=1;
+                           //else {
+                            //arr[n]=i;n++;}
+                            
+                        
+                            
                             
                             break;
                     }
@@ -154,6 +174,11 @@ void Open::start(SDL_Renderer* renderer,Background* bg){
                         SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
                         text_rect.y = 430;
                         textsurface = TTF_RenderText_Blended(font, "B12901184", color);
+                        texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
+                        SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
+                        text_rect.x=270;
+                        text_rect.w=370;
+                         textsurface = TTF_RenderText_Blended(font, "Input must be English keyboard!!!", color);
                         texttexture = SDL_CreateTextureFromSurface(renderer, textsurface);
                         SDL_RenderCopy(renderer, texttexture, NULL, &text_rect);
                     }

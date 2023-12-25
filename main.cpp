@@ -4,7 +4,7 @@
 #include <SDL2/SDL_mixer.h>
 //#include <SDL.h>
 //#include <SDL_image.h>
-//include <SDL_ttf.h>
+//#include <SDL_ttf.h>
 //#include <SDL_mixer.h>
 #include <stdio.h>
 #include <string>
@@ -778,7 +778,7 @@ loadMedia();
         open.start(renderer,bg);
         Mix_HaltMusic();
         load_sprites(renderer, sprites,open);
-         
+         points.reset();
         place_sprites_on_start(sprites, PLAYER1);
         Mix_HaltMusic();
         Mix_PlayMusic( gMusic, -1 );
@@ -896,3 +896,4 @@ loadMedia();
   SDL_Quit();
   return 0;
 }
+
